@@ -1,5 +1,5 @@
+/*Halaman Manajemen Kegiatan Statistik*/
 "use client";
-/*Halaman Manajmen Kegiatan Statistik*/
 
 import { useState } from "react";
 import Flatpickr from "react-flatpickr";
