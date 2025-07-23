@@ -1,4 +1,4 @@
-/*Halaman Manajemen Kegiatan Statistik1*/
+/*Halaman Manajemen Kegiatan Statistik*/
 "use client";
 
 import { useState } from "react";
