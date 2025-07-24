@@ -317,41 +317,41 @@ export default function ManajemenKegiatanStatistik() {
             {rk && (
               <div className="w-full space-y-8">
                 <div className="w-full mb-8">
-                  <label htmlFor="nama-kegiatan" className="mb-3 block text-base font-medium text-black dark:text-white">
-                    Nama Kegiatan
-                  </label>
-                  <input
-                    type="text"
-                    id="nama-kegiatan"
-                    value={namaKegiatan}
-                    onChange={(e) => setNamaKegiatan(e.target.value)}
-                    placeholder="Contoh: Pencacahan Rumah Tangga Sampel Susenas"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white placeholder-gray-500 dark:placeholder-white"
-                  />
-                </div>
+                <label htmlFor="nama-kegiatan" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
+                  Nama Kegiatan
+                </label>
+                <input
+                  type="text"
+                  id="nama-kegiatan"
+                  value={namaKegiatan}
+                  onChange={(e) => setNamaKegiatan(e.target.value)}
+                  placeholder="Contoh: Pencacahan Rumah Tangga Sampel Susenas"
+                  className="w-full rounded border-[1.5px] border-gray-300 bg-gray-100 py-3 px-5 font-medium text-gray-900 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"
+                />
+              </div>
                 <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div>
-                    <label htmlFor="tanggal-mulai" className="mb-3 block text-base font-medium text-black dark:text-white">
+                    <label htmlFor="tanggal-mulai" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
                       Tanggal Mulai
                     </label>
                     <Flatpickr
                       id="tanggal-mulai"
-                      value={tanggalMulai}
+                      value={tanggalMulai ? [new Date(tanggalMulai)] : []}
                       onChange={([date]) => setTanggalMulai(date.toISOString().split("T")[0])}
                       options={{ dateFormat: "Y-m-d", locale: { firstDayOfWeek: 1 } }}
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      className="w-full rounded border-[1.5px] border-gray-300 bg-gray-100 py-3 px-5 font-medium text-gray-900 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                     />
                   </div>
                   <div>
-                    <label htmlFor="tanggal-selesai" className="mb-3 block text-base font-medium text-black dark:text-white">
+                    <label htmlFor="tanggal-selesai" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
                       Tanggal Selesai
                     </label>
                     <Flatpickr
                       id="tanggal-selesai"
-                      value={tanggalSelesai}
+                      value={tanggalSelesai ? [new Date(tanggalSelesai)] : []}
                       onChange={([date]) => setTanggalSelesai(date.toISOString().split("T")[0])}
                       options={{ dateFormat: "Y-m-d", locale: { firstDayOfWeek: 1 } }}
-                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                      className="w-full rounded border-[1.5px] border-gray-300 bg-gray-100 py-3 px-5 font-medium text-gray-900 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                     />
                   </div>
                 </div>
@@ -411,18 +411,28 @@ export default function ManajemenKegiatanStatistik() {
                 </div>
               </div>
           
-                <div className="w-full mb-8">
+            <div className="w-full mb-8">
              <label htmlFor="target-petugas" className="mb-3 block text-base font-medium text-black dark:text-white">
               Target per Petugas
              </label>
               <div className="flex w-full gap-4">
                 <input
-                  type="number"
-                  id="target-petugas"
-                  value={targetPetugas}
-                  onChange={(e) => setTargetPetugas(e.target.value)}
-                  placeholder="Masukkan jumlah target"
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white placeholder-gray-500 dark:placeholder-white"/>
+                      type="number"
+                      id="target-petugas"
+                      value={targetPetugas}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Validasi: hanya set nilai jika lebih dari 0 atau kosong
+                        if (value === "" || (parseInt(value) >= 0)) {
+                          setTargetPetugas(value);
+                        } else {
+                          // Opsional: Anda bisa menampilkan pesan error atau alert di sini
+                          console.log("Target harus lebih dari 0!");
+                        }
+                      }}
+                      placeholder="Masukkan jumlah target (angka)"
+                      className="w-full rounded border-[1.5px] border-gray-300 bg-gray-100 py-3 px-5 font-medium text-gray-900 outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-400"/>
+                  
                 <div className="relative z-20 w-1/3 bg-gray-100 dark:bg-gray-800">
                 <select
                   id="satuan-target"
