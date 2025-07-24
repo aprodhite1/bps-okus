@@ -209,110 +209,108 @@ export default function ManajemenKegiatanStatistik() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Manajemen Kegiatan Statistik" />
-      <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
-        <div className="w-full">
-          {alert.show && (
-            <div className={`mt-4 p-4 rounded w-full ${alert.type === "success" ? "bg-green-100 text-green-700 dark:text-white" : "bg-red-100 text-red-700 dark:text-white"}`}>
-              {alert.message}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* IKU Select */}
-            <div className="w-full mb-8">
-              <label htmlFor="iku-select" className="mb-3 block text-base font-medium text-black dark:text-white">
-                Pilih Indikator Kinerja Utama (IKU)
-              </label>
-              <div className="relative z-20 bg-transparent dark:bg-form-input">
-                <select
-                  id="iku-select"
-                  value={iku}
-                  onChange={(e) => {
-                    setIku(e.target.value);
-                    setRk(""); // Reset RK when IKU changes
-                  }}
-                  className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                >
-                  <option value="">-- Pilih IKU --</option>
-                  {ikuRkData.map((item) => (
-                    <option key={item.iku} value={item.iku}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                  <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g opacity="0.8">
-                      <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill=""></path>
-                    </g>
-                  </svg>
-                </span>
-              </div>
-            </div>
-
-            {/* RK Select */}
-            {iku && (
-              <div className="w-full mb-8">
-                <label htmlFor="rk-select" className="mb-3 block text-base font-medium text-black dark:text-white">
-                  Pilih Rencana Kinerja (RK)
-                </label>
-                <div className="relative z-20 bg-transparent dark:bg-form-input">
-                  <select
-                    id="rk-select"
-                    value={rk}
-                    onChange={(e) => {
-                      setRk(e.target.value);
-                      // Reset Proyek saat RK berubah (opsional, hapus jika tidak diinginkan)
-                      setProyek("");
-                    }}
-                    className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    <option value="">-- Pilih RK --</option>
-                    {filteredRks.map((rkItem) => (
-                      <option key={rkItem.value} value={rkItem.value}>
-                        {rkItem.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                    <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g opacity="0.8">
-                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill=""></path>
-                      </g>
-                    </svg>
-                  </span>
+          <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
+            <div className="w-full">
+              {alert.show && (
+                <div className={`mt-4 p-4 rounded w-full ${alert.type === "success" ? "bg-green-100 text-green-700 dark:text-white" : "bg-red-100 text-red-700 dark:text-white"}`}>
+                  {alert.message}
                 </div>
-              </div>
-            )}
-
-            {/* Proyek Select */}
-            {rk && (
+              )}
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {/* IKU Select */}
               <div className="w-full mb-8">
-                <label htmlFor="proyek-select" className="mb-3 block text-base font-medium text-black dark:text-white">
-                  Pilih Proyek
-                </label>
-                <div className="relative z-20 bg-transparent dark:bg-form-input">
-                  <select
-                    id="proyek-select"
-                    value={proyek}
-                    onChange={(e) => setProyek(e.target.value)}
-                    className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-                  >
-                    <option value="">-- Pilih Proyek --</option>
-                    {proyekData.map((proyekItem) => (
-                      <option key={proyekItem.value} value={proyekItem.value}>
-                        {proyekItem.name}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                    <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <g opacity="0.8">
-                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill=""></path>
-                      </g>
-                    </svg>
-                  </span>
-                </div>
-              </div>
+      <label htmlFor="iku-select" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
+        Pilih Indikator Kinerja Utama (IKU)
+      </label>
+      <div className="relative z-20 bg-gray-100 dark:bg-gray-800">
+        <select
+          id="iku-select"
+          value={iku}
+          onChange={(e) => {
+            setIku(e.target.value);
+            setRk(""); // Reset RK when IKU changes
+          }}
+          className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+        >
+          <option value="">-- Pilih IKU --</option>
+          {ikuRkData.map((item) => (
+            <option key={item.iku} value={item.iku} className="text-gray-900 dark:text-gray-200">
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
+          <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g opacity="0.8">
+              <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
+            </g>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    {iku && (
+      <div className="w-full mb-8">
+        <label htmlFor="rk-select" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
+          Pilih Rencana Kinerja (RK)
+        </label>
+        <div className="relative z-20 bg-gray-100 dark:bg-gray-800">
+          <select
+            id="rk-select"
+            value={rk}
+            onChange={(e) => {
+              setRk(e.target.value);
+              setProyek(""); // Reset Proyek saat RK berubah
+            }}
+            className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+          >
+            <option value="">-- Pilih RK --</option>
+            {filteredRks.map((rkItem) => (
+              <option key={rkItem.value} value={rkItem.value} className="text-gray-900 dark:text-gray-200">
+                {rkItem.name}
+              </option>
+            ))}
+          </select>
+          <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
+            <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g opacity="0.8">
+                <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
+              </g>
+            </svg>
+          </span>
+        </div>
+      </div>
+    )}
+
+    {rk && (
+      <div className="w-full mb-8">
+        <label htmlFor="proyek-select" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
+          Pilih Proyek
+        </label>
+        <div className="relative z-20 bg-gray-100 dark:bg-gray-800">
+          <select
+            id="proyek-select"
+            value={proyek}
+            onChange={(e) => setProyek(e.target.value)}
+            className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+          >
+            <option value="">-- Pilih Proyek --</option>
+            {proyekData.map((proyekItem) => (
+              <option key={proyekItem.value} value={proyekItem.value} className="text-gray-900 dark:text-gray-200">
+                {proyekItem.name}
+              </option>
+            ))}
+          </select>
+          <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
+            <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g opacity="0.8">
+                <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
+              </g>
+            </svg>
+          </span>
+        </div>
+      </div>
+
             )}
 
             {/* Activity Form */}
@@ -358,27 +356,27 @@ export default function ManajemenKegiatanStatistik() {
                   </div>
                 </div>
                 <div className="w-full mb-8">
-                <label htmlFor="proyek-select" className="mb-3 block text-base font-medium text-black dark:text-white">
+                <label htmlFor="pegawai-select" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
                   Pilih Pegawai
                 </label>
-                <div className="relative z-20 bg-transparent dark:bg-form-input">
+                <div className="relative z-20 bg-gray-100 dark:bg-gray-800">
                   <select
                     id="pegawai-select"
                     value={pegawai}
                     onChange={(e) => setPegawai(e.target.value)}
-                    className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                   >
                     <option value="">-- Pilih Pegawai --</option>
                     {pegawaiData.map((pegawaiItem) => (
-                      <option key={pegawaiItem.value} value={pegawaiItem.value}>
+                      <option key={pegawaiItem.value} value={pegawaiItem.value} className="text-gray-900 dark:text-gray-200">
                         {pegawaiItem.name}
                       </option>
                     ))}
                   </select>
                   <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                    <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g opacity="0.8">
-                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill=""></path>
+                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
                       </g>
                     </svg>
                   </span>
@@ -386,27 +384,27 @@ export default function ManajemenKegiatanStatistik() {
               </div>
 
               <div className="w-full mb-8">
-                <label htmlFor="proyek-select" className="mb-3 block text-base font-medium text-black dark:text-white">
+                <label htmlFor="mitra-select" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
                   Pilih Mitra
                 </label>
-                <div className="relative z-20 bg-transparent dark:bg-form-input">
+                <div className="relative z-20 bg-gray-100 dark:bg-gray-800">
                   <select
                     id="mitra-select"
                     value={mitra}
                     onChange={(e) => setMitra(e.target.value)}
-                    className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
+                    className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
                   >
-                    <option value="">-- Pilih mitra --</option>
+                    <option value="">-- Pilih Mitra --</option>
                     {mitraData.map((mitraItem) => (
-                      <option key={mitraItem.value} value={mitraItem.value}>
+                      <option key={mitraItem.value} value={mitraItem.value} className="text-gray-900 dark:text-gray-200">
                         {mitraItem.name}
                       </option>
                     ))}
                   </select>
                   <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-                    <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <g opacity="0.8">
-                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill=""></path>
+                        <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
                       </g>
                     </svg>
                   </span>
@@ -414,39 +412,38 @@ export default function ManajemenKegiatanStatistik() {
               </div>
           
                 <div className="w-full mb-8">
-    <label htmlFor="target-petugas" className="mb-3 block text-base font-medium text-black dark:text-white">
-        Target per Petugas
-      </label>
-      <div className="flex w-full gap-4">
-        <input
-          type="number"
-          id="target-petugas"
-          value={targetPetugas}
-          onChange={(e) => setTargetPetugas(e.target.value)}
-          placeholder="Masukkan jumlah target"
-          className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white placeholder-gray-500 dark:placeholder-white"
-        />
-        <div className="relative z-20 w-1/3 bg-transparent dark:bg-form-input">
-          <select
-            id="satuan-target"
-            value={satuanTarget || ""}
-            onChange={(e) => setSatuanTarget(e.target.value)}
-            className="w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white"
-          >
-            <option value="rumah_tangga">Rumah Tangga</option>
-            <option value="desa">Desa</option>
-            <option value="dokumen">Dokumen</option>
-          </select>
-          <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
-            <svg className="fill-current" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g opacity="0.8">
-                <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
-              </g>
-            </svg>
-          </span>
-        </div>
-      </div>
-    </div>
+             <label htmlFor="target-petugas" className="mb-3 block text-base font-medium text-black dark:text-white">
+              Target per Petugas
+             </label>
+              <div className="flex w-full gap-4">
+                <input
+                  type="number"
+                  id="target-petugas"
+                  value={targetPetugas}
+                  onChange={(e) => setTargetPetugas(e.target.value)}
+                  placeholder="Masukkan jumlah target"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white placeholder-gray-500 dark:placeholder-white"/>
+                <div className="relative z-20 w-1/3 bg-gray-100 dark:bg-gray-800">
+                <select
+                  id="satuan-target"
+                  value={satuanTarget || ""}
+                  onChange={(e) => setSatuanTarget(e.target.value)}
+                  className="w-full appearance-none rounded border border-gray-300 bg-transparent py-3 px-5 text-gray-900 outline-none transition focus:border-primary active:border-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                >
+                  <option value="rumah_tangga" className="text-gray-900 dark:text-gray-200">Rumah Tangga</option>
+                  <option value="desa" className="text-gray-900 dark:text-gray-200">Desa</option>
+                  <option value="dokumen" className="text-gray-900 dark:text-gray-200">Dokumen</option>
+                </select>
+                <span className="absolute top-1/2 right-4 z-30 -translate-y-1/2">
+                  <svg className="fill-current text-gray-600 dark:text-gray-400" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g opacity="0.8">
+                      <path d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z" fill="" />
+                    </g>
+                  </svg>
+                </span>
+              </div>
+              </div>
+            </div>
                 <div className="w-full mb-8">
                   <button type="submit" className="w-full flex justify-center rounded bg-gray-100 p-3 font-medium text-gray-800 hover:bg-gray-400 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 transition-colors duration-200">
                     Tambah Kegiatan
