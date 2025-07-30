@@ -19,37 +19,37 @@ export default function HistoryPage() {
     <div>
       <PageBreadcrumb pageTitle="History" />
       <div className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Completed Activities</h2>
-        <p className="text-gray-600 mb-4">
+        <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Completed Activities</h2>
+        <p className="text-gray-600 dark:text-white mb-4">
           On this page, users, admins, and super admins can view the history of
           completed activities. If an activity is not completed, it will appear
           in the Progress menu.
         </p>
         {completedActivities.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow">
+            <table className="min-w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow">
               <thead>
-                <tr className="bg-gray-100 text-left text-gray-600">
-                  <th className="py-3 px-4 border-b">ID</th>
-                  <th className="py-3 px-4 border-b">Title</th>
-                  <th className="py-3 px-4 border-b">Date</th>
-                  <th className="py-3 px-4 border-b">Status</th>
+                <tr className="bg-gray-100 dark:bg-gray-800 text-left text-black dark:text-white">
+                  <th className="py-3 px-4 border-b border-gray-200 dark:border-gray-700">ID</th>
+                  <th className="py-3 px-4 border-b border-gray-200 dark:border-gray-700">Title</th>
+                  <th className="py-3 px-4 border-b border-gray-200 dark:border-gray-700">Date</th>
+                  <th className="py-3 px-4 border-b border-gray-200 dark:border-gray-700">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {completedActivities.map((activity) => (
-                  <tr key={activity.id} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 border-b">{activity.id}</td>
-                    <td className="py-3 px-4 border-b">{activity.title}</td>
-                    <td className="py-3 px-4 border-b">{activity.date}</td>
-                    <td className="py-3 px-4 border-b text-green-600">{activity.status}</td>
+                  <tr key={activity.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-700 text-black dark:text-white">{activity.id}</td>
+                    <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-700 text-black dark:text-white">{activity.title}</td>
+                    <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-700 text-black dark:text-white">{activity.date}</td>
+                    <td className="py-3 px-4 border-b border-gray-200 dark:border-gray-700 text-green-600 dark:text-green-400">{activity.status}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-gray-500">No completed activities found.</p>
+          <p className="text-gray-500 dark:text-white">No completed activities found.</p>
         )}
       </div>
     </div>
