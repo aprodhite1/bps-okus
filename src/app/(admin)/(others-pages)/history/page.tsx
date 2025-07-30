@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js History | TailAdmin - Next.js Dashboard Template",
+  title: "Riwayat Kegiatan | BPS Kabupaten Ogan Komering Ulu Selatan",
   description:
     "This is Next.js History page for TailAdmin Tailwind CSS Admin Dashboard Template",
 };
@@ -17,7 +17,7 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="History" />
+      <PageBreadcrumb pageTitle="Riwayat Kegiatan" />
       <div className="p-6">
         <h2 className="text-xl font-semibold text-black dark:text-white mb-4">Completed Activities</h2>
         <p className="text-gray-600 dark:text-white mb-4">

@@ -20,10 +20,10 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { icon: <GridIcon />, name: "Dashboard", path: "/" },
-  { icon: <PageIcon />, name: "Manage Event", path: "/manage-event" },
-  { icon: <CalenderIcon />, name: "Calendar", path: "/calendar" },
-  { icon: <ListIcon />, name: "History", path: "/history" },
+  { icon: <GridIcon />, name: "Dasbor", path: "/" },
+  { icon: <PageIcon />, name: "Manajemen Kegiatan", path: "/manage-event" },
+  { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
+  { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/history" },
 ];
 
 const AppSidebar: React.FC = () => {
