@@ -10,7 +10,7 @@ import DemographicCard from "@/components/ecommerce/DemographicCard";
 export const metadata: Metadata = {
   title:
     "SAKIP - Sistem Akuntabilitas Kinerja Instansi Pemerintah | BPS Kabupaten Ogan Komering Ulu Selatan",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+  description: "Aplikasi SAKIP BPS Kabupaten Ogan Komering Ulu Selatan untuk mengelola kinerja instansi pemerintah",
 };
 
 export default function Ecommerce() {
