@@ -2,7 +2,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Manajemen Kegiatan Statistik | BPS Kabupaten OKU Selatan",
+  title: "Tambah Kegiatan | BPS Kabupaten OKU Selatan",
   description: "Halaman untuk mengelola kegiatan statistik di SAKIP BPS OKU Selatan",
 };
 
