@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "Halaman untuk mengelola kegiatan statistik di SAKIP BPS OKU Selatan",
 };
 
-import ManageEvent from "@/app/(admin)/(others-pages)/manage-event/manage-event"; // Pastikan path sesuai dengan lokasi file komponen
+import ManageEvent from "@/app/(admin)/(others-pages)/manage-event/tambah-kegiatan"; // Pastikan path sesuai dengan lokasi file komponen
 
 export default function ManajemenKegiatanStatistikPage() {
   return <ManageEvent />; // Impor komponen Client Component di sini

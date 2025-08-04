@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,11 +17,20 @@ type NavItem = {
   name: string;
   icon: React.ReactNode;
   path: string;
+  subItems?: { name: string; path: string }[];
 };
 
 const navItems: NavItem[] = [
   { icon: <GridIcon />, name: "Dasbor", path: "/" },
-  { icon: <PageIcon />, name: "Manajemen Kegiatan", path: "/manage-event" },
+  {
+    icon: <PageIcon />,
+    name: "Manajemen Kegiatan",
+    path: "/manage-event",
+    subItems: [
+      { name: "Tambah Kegiatan", path: "/manage-event/tambah" },
+      { name: "Monitoring Kegiatan", path: "/manage-event/monitoring" },
+    ],
+  },
   { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
   { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/history" },
 ];
@@ -29,30 +38,78 @@ const navItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const renderMenuItems = () => (
     <ul className="flex flex-col gap-4">
       {navItems.map((nav) => (
         <li key={nav.name}>
-          <Link
-            href={nav.path}
-            className={`menu-item group ${
-              isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
-            } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
-          >
-            <span
-              className={`${
-                isActive(nav.path)
-                  ? "menu-item-icon-active"
-                  : "menu-item-icon-inactive"
-              }`}
+          {nav.subItems ? (
+            <div>
+              <button
+                onClick={() => setOpenDropdown(openDropdown === nav.name ? null : nav.name)}
+                className={`menu-item group flex items-center ${
+                  isActive(nav.path) || (nav.subItems?.some((sub) => isActive(sub.path)) ?? false)
+                    ? "menu-item-active"
+                    : "menu-item-inactive"
+                } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+              >
+                <span
+                  className={`${
+                    isActive(nav.path) || (nav.subItems?.some((sub) => isActive(sub.path)) ?? false)
+                      ? "menu-item-icon-active"
+                      : "menu-item-icon-inactive"
+                  }`}
+                >
+                  {nav.icon}
+                </span>
+                {(isExpanded || isHovered || isMobileOpen) && (
+                  <span className="menu-item-text flex-1">{nav.name}</span>
+                )}
+                {(isExpanded || isHovered || isMobileOpen) && (
+                  <span className="ml-2 transform transition-transform duration-200">
+                    {openDropdown === nav.name ? "▲" : "▼"}
+                  </span>
+                )}
+              </button>
+              {openDropdown === nav.name && (isExpanded || isHovered || isMobileOpen) && (
+                <ul className="ml-6 mt-2 space-y-2">
+                  {nav.subItems.map((sub) => (
+                    <li key={sub.name}>
+                      <Link
+                        href={sub.path}
+                        className={`menu-item-sub group ${
+                          isActive(sub.path) ? "menu-item-active" : "menu-item-inactive"
+                        } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
+                      >
+                        {(isExpanded || isHovered || isMobileOpen) && (
+                          <span className="menu-item-text">{sub.name}</span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <Link
+              href={nav.path}
+              className={`menu-item group ${
+                isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
+              } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
             >
-              {nav.icon}
-            </span>
-            {(isExpanded || isHovered || isMobileOpen) && (
-              <span className="menu-item-text">{nav.name}</span>
-            )}
-          </Link>
+              <span
+                className={`${
+                  isActive(nav.path) ? "menu-item-icon-active" : "menu-item-icon-inactive"
+                }`}
+              >
+                {nav.icon}
+              </span>
+              {(isExpanded || isHovered || isMobileOpen) && (
+                <span className="menu-item-text">{nav.name}</span>
+              )}
+            </Link>
+          )}
         </li>
       ))}
     </ul>
