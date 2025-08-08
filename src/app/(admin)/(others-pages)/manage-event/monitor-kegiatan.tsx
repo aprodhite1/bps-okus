@@ -54,6 +54,7 @@ const MonitorKegiatan: React.FC = () => {
           },
         ];
         setKegiatanList(mockData);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         setError("Gagal memuat data kegiatan!");
       } finally {

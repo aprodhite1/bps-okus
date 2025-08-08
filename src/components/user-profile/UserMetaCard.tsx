@@ -23,7 +23,7 @@ export default function UserMetaCard() {
             <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800">
               <Image
                 width={80}
-                height={80}
+                style={{ height: "auto" }}
                 src="/images/user/owner.jpg"
                 alt="user"
               />

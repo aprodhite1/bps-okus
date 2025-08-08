@@ -198,6 +198,7 @@ export default function ManajemenKegiatanStatistik() {
         setAlert({ show: true, message: "Data belum bisa disubmit!", type: "error" });
         setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
       }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setAlert({ show: true, message: "Terjadi kesalahan!", type: "error" });
       setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
