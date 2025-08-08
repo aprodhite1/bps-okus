@@ -199,7 +199,7 @@ export default function ManajemenKegiatanStatistik() {
         setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
       }
     } catch (error) {
-      setAlert({ show: true, message: "Terjadi kesalah!", type: "error" });
+      setAlert({ show: true, message: "Terjadi kesalahan!", type: "error" });
       setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
     }
   };
