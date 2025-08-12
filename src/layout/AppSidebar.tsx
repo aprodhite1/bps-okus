@@ -35,7 +35,9 @@ const AppSidebar: React.FC = () => {
 
   // Definisi menu
   const navItems: NavItem[] = [
-    { icon: <GridIcon />, name: "Dasbor", path: "/" },
+    { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
+    { icon: <GridIcon />, name: "Capaian Kinerja Pegawai", path: "/" },
+    
     {
       icon: <PageIcon />,
       name: "Manajemen Kegiatan",
@@ -53,8 +55,7 @@ const AppSidebar: React.FC = () => {
         },
       ],
     },
-    { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
-    { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/history" },
+    
   ];
 
   const [openSubmenu, setOpenSubmenu] = useState<{ index: number } | null>(null);

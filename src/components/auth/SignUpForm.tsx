@@ -5,21 +5,15 @@ import Label from "@/components/form/Label";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
-      <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        >
-          <ChevronLeftIcon />
-          Back to dashboard
-        </Link>
-      </div>
+      <div className="w-full max-w-md sm:pt-10 mx-auto mb-5"></div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -33,6 +27,7 @@ export default function SignUpForm() {
           <div>
             <div className="grid grid-cols-1 gap-3 sm:gap-5">
               <button
+                onClick={() => signIn("google", { callbackUrl: "/" })}
                 className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg w-full hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
               >
                 <svg
@@ -75,7 +70,7 @@ export default function SignUpForm() {
             <form>
               <div className="space-y-5">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  {/* <!-- First Name --> */}
+                  {/* First Name */}
                   <div className="sm:col-span-1">
                     <Label>
                       First Name<span className="text-error-500">*</span>
@@ -87,7 +82,7 @@ export default function SignUpForm() {
                       placeholder="Enter your first name"
                     />
                   </div>
-                  {/* <!-- Last Name --> */}
+                  {/* Last Name */}
                   <div className="sm:col-span-1">
                     <Label>
                       Last Name<span className="text-error-500">*</span>
@@ -100,7 +95,7 @@ export default function SignUpForm() {
                     />
                   </div>
                 </div>
-                {/* <!-- Email --> */}
+                {/* Email */}
                 <div>
                   <Label>
                     Email<span className="text-error-500">*</span>
@@ -112,7 +107,7 @@ export default function SignUpForm() {
                     placeholder="Enter your email"
                   />
                 </div>
-                {/* <!-- Password --> */}
+                {/* Password */}
                 <div>
                   <Label>
                     Password<span className="text-error-500">*</span>
@@ -134,7 +129,7 @@ export default function SignUpForm() {
                     </span>
                   </div>
                 </div>
-                {/* <!-- Checkbox --> */}
+                {/* Checkbox */}
                 <div className="flex items-center gap-3">
                   <Checkbox
                     className="w-5 h-5"
@@ -152,7 +147,7 @@ export default function SignUpForm() {
                     </span>
                   </p>
                 </div>
-                {/* <!-- Button --> */}
+                {/* Button */}
                 <div>
                   <button
                     className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 dark:bg-brand-500 dark:hover:bg-brand-600"
@@ -162,7 +157,6 @@ export default function SignUpForm() {
                 </div>
               </div>
             </form>
-
             <div className="mt-5">
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                 Already have an account?{" "}
@@ -173,6 +167,7 @@ export default function SignUpForm() {
                   Sign In
                 </Link>
               </p>
+              <div className="w-full max-w-md sm:pt-10 mx-auto mb-5"></div>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // List halaman yang tidak butuh login
-  const publicPaths = ["/signin", "/api/auth", "/_next", "/favicon.ico"];
+  const publicPaths = ["/signin", "/signup", "/api/auth", "/_next", "/favicon.ico"];
 
   // Kalau termasuk halaman public → lanjut aja
   if (publicPaths.some((path) => pathname.startsWith(path))) {
