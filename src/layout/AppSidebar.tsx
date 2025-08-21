@@ -15,7 +15,7 @@ import {
   PlusIcon, // Ikon untuk Tambah Kegiatan
   EyeIcon,   // Ikon untuk Monitoring Kegiatan
 } from "../icons/index";
-import SidebarWidget from "./SidebarWidget";
+
 
 type NavItem = {
   name: string;
@@ -31,11 +31,12 @@ const navItems: NavItem[] = [
     name: "Manajemen Kegiatan",
     subItems: [
       { name: "Tambah Kegiatan", path: "/manage-event/tambah", icon: <PlusIcon /> },
-      { name: "Monitoring Kegiatan", path: "/manage-event/monitoring", icon: <EyeIcon /> },
+      { name: "Monitoring Kegiatan", path: "/kegiatan", icon: <EyeIcon /> },
+      
     ],
   },
   { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
-  { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/history" },
+  { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/kegiatan" },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -258,7 +259,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {(isExpanded || isHovered || isMobileOpen) && <SidebarWidget />}
+        {isExpanded || isHovered || isMobileOpen }
       </div>
     </aside>
   );

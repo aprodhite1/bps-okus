@@ -1,5 +1,5 @@
 import Calendar from "@/components/calendar/Calendar";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+
 import { Metadata } from "next";
 import React from "react";
 
@@ -11,9 +11,16 @@ export const metadata: Metadata = {
 };
 export default function page() {
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Kalender Kegiatan | BPS Kabupaten Ogan Komering Ulu Selatan" />
-      <Calendar />
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Kalender Kegiatan</h2>
+          <Calendar />
+        </div>
+      </div>
+      
+      
     </div>
+    
   );
 }

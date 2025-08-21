@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // Sesuaikan path
+import { useSearchParams } from 'next/navigation';
+import LoadingSpinner from '@/components/Loading/LoadingSpinner';
+
 
 // Data statis untuk dropdown IKU dan RK
 const ikuRkData = [
@@ -153,6 +158,7 @@ export default function ManajemenKegiatanStatistik() {
   const [rk, setRk] = useState("");
   const [proyek, setProyek] = useState("");
   const [namaKegiatan, setNamaKegiatan] = useState("");
+  const searchParams = useSearchParams();
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [pegawai, setPegawai] = useState("");
@@ -160,57 +166,96 @@ export default function ManajemenKegiatanStatistik() {
   const [targetPetugas, setTargetPetugas] = useState("");
   const [satuanTarget, setSatuanTarget] = useState("");
   const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  
+  
+
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!iku || !rk || !proyek || !namaKegiatan || !tanggalMulai || !tanggalSelesai || !targetPetugas) {
-      setAlert({ show: true, message: "Harap isi semua field!", type: "error" });
-      setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-      return;
-    }
+  e.preventDefault();
+  setSubmitLoading(true);
+  if (!iku || !rk || !proyek || !namaKegiatan || !tanggalMulai || !tanggalSelesai || !targetPetugas || !satuanTarget) {
+    setAlert({ show: true, message: "Harap isi semua field!", type: "error" });
+    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+    return;
+  }
 
-    try {
-      const response = await fetch("/api/kegiatan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          iku,
-          rk,
-          proyek,
-          nama_kegiatan: namaKegiatan,
-          tanggal_mulai: tanggalMulai,
-          tanggal_selesai: tanggalSelesai,
-          target_petugas: targetPetugas,
-        }),
-      });
+  try {
+    setLoading(true);
+    
+    
+    // Pastikan data dalam format yang benar
+    const kegiatanData = {
+      iku: iku.trim(),
+      rk: rk.trim(),
+      proyek: proyek.trim(),
+      nama_kegiatan: namaKegiatan.trim(),
+      tanggal_mulai: tanggalMulai, // Simpan sebagai string
+      tanggal_selesai: tanggalSelesai, // Simpan sebagai string
+      pegawai: pegawai || null,
+      mitra: mitra || null,
+      target_petugas: Number(targetPetugas), // Convert to number
+      satuan_target: satuanTarget,
+      created_at: new Date(), // Gunakan Date object untuk timestamp
+      updated_at: new Date(),
+      status: 'draft'
+    };
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    console.log('Data to be saved:', kegiatanData);
 
-      if (response.ok) {
-        setAlert({ show: true, message: "Kegiatan berhasil disimpan!", type: "success" });
-        setIku("");
-        setRk("");
-        setProyek("");
-        setNamaKegiatan("");
-        setTanggalMulai("");
-        setTanggalSelesai("");
-        setTargetPetugas("");
-        setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-      } else {
-        setAlert({ show: true, message: "Data belum bisa disubmit!", type: "error" });
-        setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-      }
-    } catch (error) {
-      setAlert({ show: true, message: "Terjadi kesalahan!", type: "error" });
-      setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
-    }
-  };
+    // Simpan ke Firestore
+    const docRef = await addDoc(collection(db, "kegiatan"), kegiatanData);
+
+    setAlert({ 
+      show: true, 
+      message: `Kegiatan berhasil disimpan dengan ID: ${docRef.id}`, 
+      type: "success" 
+    });
+    
+    // Reset form
+    setIku("");
+    setRk("");
+    setProyek("");
+    setNamaKegiatan("");
+    setTanggalMulai("");
+    setTanggalSelesai("");
+    setPegawai("");
+    setMitra("");
+    setTargetPetugas("");
+    setSatuanTarget("");
+    
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Firebase error:", error);
+    setAlert({ 
+      show: true, 
+      message: `Error: ${error.message}`, 
+      type: "error" 
+    });
+  } finally {
+    setLoading(false);
+    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+    setSubmitLoading(false);
+  }
+};
 
   const filteredRks = iku ? ikuRkData.find((item) => item.iku === iku)?.rks || [] : [];
-
+useEffect(() => {
+    // Pre-fill date from calendar click
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      setTanggalMulai(dateParam);
+      setTanggalSelesai(dateParam);
+    }
+  }, [searchParams]);
   return (
     <div>
       <PageBreadcrumb pageTitle="Kelola Kegiatan" />
+      
       <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className="w-full">
+          
           {alert.show && (
             <div
               className={`mt-4 p-4 rounded w-full ${
@@ -506,10 +551,15 @@ export default function ManajemenKegiatanStatistik() {
 
                 <div className="w-full mb-8">
                   <button
-                    type="submit"
-                    className="w-full flex justify-center rounded bg-gray-100 p-3 font-medium text-gray-800 hover:bg-gray-400 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 transition-colors duration-200"
-                  >
-                    Tambah Kegiatan
+                      type="submit"
+                      disabled={submitLoading}
+                      className={`w-full flex justify-center rounded p-3 font-medium transition-colors duration-200 ${
+                        loading 
+                          ? "bg-gray-400 text-gray-200 cursor-not-allowed" 
+                          : "bg-gray-100 text-gray-800 hover:bg-gray-400 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500"
+                      }`}
+                    >
+                      {submitLoading ? "Menyimpan..." : "Tambah Kegiatan"}
                   </button>
                 </div>
               </div>
