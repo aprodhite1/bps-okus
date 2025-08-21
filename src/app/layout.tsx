@@ -1,23 +1,42 @@
-import { Outfit } from 'next/font/google';
-import './globals.css';
+import { Outfit } from "next/font/google";
+import "./globals.css";
 
-import { SidebarProvider } from '@/context/SidebarContext';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { SidebarProvider } from "@/context/SidebarContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { auth } from "@/auth";
+import { Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
 
 const outfit = Outfit({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+// Komponen client di dalam file yang sama
+function ClientProviders({
   children,
-}: Readonly<{
+  session,
+}: {
   children: React.ReactNode;
-}>) {
+  session: Session | null;
+}) {
+  "use client";
+  return <SessionProvider session={session}>{children}</SessionProvider>;
+}
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth(); // ambil session di server
+
   return (
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <ThemeProvider>
-          <SidebarProvider>{children}</SidebarProvider>
+          <ClientProviders session={session}>
+            <SidebarProvider>{children}</SidebarProvider>
+          </ClientProviders>
         </ThemeProvider>
       </body>
     </html>
