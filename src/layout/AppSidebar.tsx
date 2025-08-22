@@ -50,9 +50,9 @@ const AppSidebar: React.FC = () => {
 
   // Definisi menu
   const navItems: NavItem[] = [
-    { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
-    { icon: <GridIcon />, name: "Capaian Kinerja Pegawai", path: "/" },
     
+    { icon: <GridIcon />, name: "Capaian Kinerja Pegawai", path: "/" },
+    { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
     {
       icon: <PageIcon />,
       name: "Manajemen Kegiatan",
@@ -61,15 +61,21 @@ const AppSidebar: React.FC = () => {
           name: "Tambah Kegiatan",
           path: "/manage-event/tambah",
           icon: <PlusIcon />,
-          hide: userRole !== "admin", // hanya admin
+          //hide: userRole !== "admin", // hanya admin
         },
         {
           name: "Monitoring Kegiatan",
           path: "/manage-event/monitoring",
           icon: <EyeIcon />,
         },
+        {
+          name: "Progres Kegiatan",
+          path: "/manage-event/progres",
+          icon: <EyeIcon />,
+        },
       ],
     },
+    { icon: <CalenderIcon />, name: "History Kegiatan ", path: "/kegiatan" },
     
   ];
 
