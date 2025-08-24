@@ -4,7 +4,7 @@
 import KegiatanList from '@/components/event/KegiatanList';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ContentLoader from '@/components/Loading/ContentLoader';
-import Link from 'next/link';
+
 import { useKegiatan } from '@/hooks/useKegiatan';
 
 export default function KegiatanPage() {

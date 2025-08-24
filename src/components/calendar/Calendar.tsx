@@ -1,22 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, {  useRef } from "react";
 import { useRouter } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { EventInput } from "@fullcalendar/core";
+
 import { useCalendarEvents } from '@/hooks/useCalendarEvent';
 
-interface CalendarEvent extends EventInput {
-  extendedProps: {
-    calendar: string;
-    kegiatan_id: string;
-    proyek: string;
-    target_petugas: number;
-    satuan_target: string;
-  };
-}
+
 
 const Calendar: React.FC = () => {
   const { events, loading } = useCalendarEvents();

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
@@ -65,7 +64,7 @@ export default function UserDropdown() {
   };
 
   // Fallback data jika user tidak ditemukan
-  const userImage = user?.username ? `/images/user/${user.username}.jpg` : "/images/user/owner.jpg";
+  
   const userName = user?.name || "User";
   const userEmail = user?.email || "user@example.com";
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -98,7 +99,7 @@ export const useKegiatan = () => {
           setLoading(false);
           
           // Fallback: coba ambil data dengan cara lain
-          fetchKegiatanFallback(user.username);
+          
         }
       );
 
@@ -110,17 +111,7 @@ export const useKegiatan = () => {
     }
   }, [user]);
 
-  // Fallback function jika realtime listener gagal
-  const fetchKegiatanFallback = async (username: string) => {
-    try {
-      console.log('Mencoba fallback method untuk mengambil data');
-      
-      // Implementasi fallback di sini jika diperlukan
-      // Misalnya dengan getDocs() instead of onSnapshot()
-    } catch (fallbackError) {
-      console.error('Fallback juga gagal:', fallbackError);
-    }
-  };
+  
 
   return { kegiatan, loading, error };
 };

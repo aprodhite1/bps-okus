@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/ProgressCard.tsx
 "use client";
 import { useState } from 'react';
@@ -225,7 +226,7 @@ export default function ProgressCard({ kegiatan, onUpdateProgress, onCancelEdit 
                 </svg>
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Belum ada progress yang dicatat. Klik "Edit Progress" untuk mulai melaporkan.
+                Belum ada progress yang dicatat. Klik `Edit Progress` untuk mulai melaporkan.
               </p>
             </div>
           )}

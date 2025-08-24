@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, ChangeEvent } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/flatpickr.min.css";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -34,11 +34,7 @@ interface MitraItem {
   name: string;
 }
 
-interface Pegawai {
-  id: string;
-  username: string;
-  name: string;
-}
+
 
 interface KegiatanForm {
   iku: string;
@@ -190,7 +186,7 @@ const mitraData: MitraItem[] = [
 export default function ManajemenKegiatanStatistik() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
-  const { pegawai, loading: loadingPegawai, error: errorPegawai } = usePegawai();
+  const { pegawai, loading: loadingPegawai } = usePegawai();
   
   const [formData, setFormData] = useState<KegiatanForm>({
     iku: "",
@@ -228,6 +224,7 @@ export default function ManajemenKegiatanStatistik() {
     }
   }, [searchParams]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleInputChange = (field: keyof KegiatanForm, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -378,6 +375,7 @@ export default function ManajemenKegiatanStatistik() {
         selectedPegawai: [],
       });
       
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Firebase error:", error);
       setAlert({ 

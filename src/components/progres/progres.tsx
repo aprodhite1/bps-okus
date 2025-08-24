@@ -1,7 +1,7 @@
 // app/progress/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext'; // Pastikan path ini benar
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -30,7 +30,7 @@ export default function ProgressPage() {
   const { user } = useAuth();
   const [kegiatanList, setKegiatanList] = useState<KegiatanWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingKegiatan, setEditingKegiatan] = useState<string | null>(null);
+  const [, setEditingKegiatan] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !user.username) return;
