@@ -47,12 +47,7 @@ export default function KegiatanPage() {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Daftar Kegiatan
         </h1>
-        <Link
-          href="/tambah-kegiatan"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          + Tambah Kegiatan
-        </Link>
+        
       </div>
 
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
