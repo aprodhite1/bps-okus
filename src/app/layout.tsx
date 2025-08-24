@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { auth } from "@/auth";
 import { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
+import { AuthProvider } from '@/context/AuthContext';
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -33,11 +34,13 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${outfit.className} dark:bg-gray-900`}>
-        <ThemeProvider>
+        <AuthProvider><ThemeProvider>
           <ClientProviders session={session}>
             <SidebarProvider>{children}</SidebarProvider>
           </ClientProviders>
         </ThemeProvider>
+        </AuthProvider>
+        
       </body>
     </html>
   );

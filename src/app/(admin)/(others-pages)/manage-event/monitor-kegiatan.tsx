@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // Definisikan tipe untuk kegiatan
 interface Kegiatan {

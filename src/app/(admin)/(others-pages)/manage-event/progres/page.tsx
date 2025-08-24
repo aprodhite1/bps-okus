@@ -9,6 +9,9 @@ export const metadata: Metadata = {
 import ProgressPage from "@/components/progres/progres"; // Pastikan path sesuai dengan lokasi file komponen
 
 export default function ProgresStatistikPage() {
-  return 
-  <ProtectedRoute><ProgressPage /></ProtectedRoute>; // Impor komponen Client Component di sini
+  return (
+    <><ProtectedRoute><ProgressPage /></ProtectedRoute>;</>
+  )
 }
+    
+   // Impor komponen Client Component di sini

@@ -6,17 +6,33 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import bcrypt from 'bcryptjs'; // atau crypto-js untuk hashing
-import { useAuth } from '@/hooks/useAuth';
+
+// Interface untuk data user
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+  password: string; // Password yang sudah di-hash
+}
+
+// Interface untuk session user (tanpa password)
+interface UserSession {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -29,6 +45,9 @@ export default function SignInForm() {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,8 +75,8 @@ export default function SignInForm() {
         throw new Error("Password salah");
       }
 
-      // Simpan user data ke sessionStorage atau state management
-      const userSession = {
+      // Simpan user data ke sessionStorage dan localStorage (tanpa password)
+      const userSession: UserSession = {
         id: userData.id,
         username: userData.username,
         email: userData.email,
@@ -69,27 +88,26 @@ export default function SignInForm() {
       localStorage.setItem('user', JSON.stringify(userSession));
 
       console.log("Login berhasil:", userData);
-      login(userSession, true);
+      
       // Redirect ke dashboard setelah login sukses
       router.push("/");
+      router.refresh(); // Refresh untuk update UI berdasarkan auth state
       
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.message || "Terjadi kesalahan saat login");
     } finally {
       setLoading(false);
-      
     }
   };
 
   // Fungsi untuk mendapatkan user data dari username
-  const getUserByUsername = async (username: string) => {
+  const getUserByUsername = async (username: string): Promise<User | null> => {
     try {
-      const q = query(
-        collection(db, "users"),
-        where("username", "==", username.trim().toLowerCase())
-      );
-      
+      // Coba cari di collection 'users' dengan username yang cocok
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username.trim().toLowerCase()));
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
@@ -106,6 +124,25 @@ export default function SignInForm() {
         };
       }
       
+      // Jika tidak ditemukan di collection 'users', coba di collection 'pegawai'
+      const pegawaiRef = collection(db, "pegawai");
+      const qPegawai = query(pegawaiRef, where("username", "==", username.trim().toLowerCase()));
+      const pegawaiSnapshot = await getDocs(qPegawai);
+      
+      if (!pegawaiSnapshot.empty) {
+        const pegawaiDoc = pegawaiSnapshot.docs[0];
+        const data = pegawaiDoc.data();
+        
+        return {
+          id: pegawaiDoc.id,
+          username: data.username,
+          email: data.email || "",
+          name: data.name,
+          role: data.role || 'user',
+          password: data.password || "" // Password yang di-hash dari Firestore
+        };
+      }
+      
       return null;
     } catch (error) {
       console.error("Error getting user by username:", error);
@@ -116,14 +153,19 @@ export default function SignInForm() {
   // Fungsi untuk verifikasi password
   const verifyPassword = async (inputPassword: string, hashedPassword: string): Promise<boolean> => {
     try {
-      // Gunakan bcryptjs untuk memverifikasi password
+      // Jika password tidak di-hash (development), bandingkan langsung
+      if (hashedPassword === inputPassword) {
+        console.warn("Password tidak di-hash! Harap hash password di production.");
+        return true;
+      }
+      
+      // Gunakan bcryptjs untuk memverifikasi password yang di-hash
       const bcrypt = await import('bcryptjs');
       return bcrypt.compareSync(inputPassword, hashedPassword);
     } catch (error) {
       console.error("Error verifying password:", error);
       
-      // Fallback: jika bcrypt tidak tersedia, gunakan comparison sederhana
-      // NOTE: Ini hanya untuk development, jangan digunakan di production!
+      // Fallback: comparison sederhana (hanya untuk development)
       return inputPassword === hashedPassword;
     }
   };

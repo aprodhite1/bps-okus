@@ -1,15 +1,44 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { useSession, signOut } from "next-auth/react"; // Impor useSession dan signOut
+import { useRouter } from "next/navigation";
+
+// Interface untuk data user
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, status } = useSession(); // Ambil data sesi
+  const [user, setUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  // Ambil data user dari localStorage/sessionStorage saat komponen mount
+  useEffect(() => {
+    const getUserData = () => {
+      try {
+        const sessionUser = sessionStorage.getItem('user');
+        const localUser = localStorage.getItem('user');
+        
+        if (sessionUser) {
+          setUser(JSON.parse(sessionUser));
+        } else if (localUser) {
+          setUser(JSON.parse(localUser));
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    };
+
+    getUserData();
+  }, []);
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
@@ -20,16 +49,25 @@ export default function UserDropdown() {
     setIsOpen(false);
   }
 
-  // Ambil gambar, nama, dan email dari sesi, gunakan fallback jika tidak ada
-  const userImage = session?.user?.image || "/images/user/owner.jpg";
-  const userName = session?.user?.name || "User";
-  const userEmail = session?.user?.email || "user@example.com";
-
   // Fungsi untuk logout
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/signin" }); // Arahkan ke halaman sign-in setelah logout
+  const handleSignOut = () => {
+    // Hapus data user dari storage
+    sessionStorage.removeItem('user');
+    localStorage.removeItem('user');
+    
+    // Reset state user
+    setUser(null);
+    
+    // Redirect ke halaman login
+    router.push("/signin");
+    router.refresh(); // Refresh halaman untuk update state
     closeDropdown();
   };
+
+  // Fallback data jika user tidak ditemukan
+  const userImage = user?.username ? `/images/user/${user.username}.jpg` : "/images/user/owner.jpg";
+  const userName = user?.name || "User";
+  const userEmail = user?.email || "user@example.com";
 
   return (
     <div className="relative">
@@ -37,14 +75,7 @@ export default function UserDropdown() {
         onClick={toggleDropdown} 
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <Image
-            width={44}
-            height={44}
-            src={userImage}
-            alt={`${userName}'s profile`}
-          />
-        </span>
+        
 
         <span className="block mr-1 font-medium text-theme-sm">{userName}</span>
 
@@ -80,6 +111,11 @@ export default function UserDropdown() {
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
             {userEmail}
           </span>
+          {user?.role && (
+            <span className="mt-1 block text-theme-xs text-brand-500 dark:text-brand-400">
+              {user.role.toUpperCase()}
+            </span>
+          )}
         </div>
 
         <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext'; // Pastikan path ini benar
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import ProgressCard from '@/components/progres/progressCard';
@@ -21,6 +21,8 @@ interface KegiatanWithProgress {
   nama_kegiatan: string;
   target_petugas: number;
   satuan_target: string;
+  pegawai: string[]; // Tambahkan ini
+  status: string; // Tambahkan ini
   progress?: ProgressData;
 }
 
@@ -31,39 +33,54 @@ export default function ProgressPage() {
   const [editingKegiatan, setEditingKegiatan] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.username) return;
 
     const fetchKegiatan = async () => {
       try {
+        console.log('Fetching kegiatan for user:', user.username);
+        
+        // Query yang lebih sederhana - hanya filter by pegawai dulu
         const q = query(
           collection(db, 'kegiatan'),
-          where('pegawai', 'array-contains', user.username),
-          where('status', 'in', ['ongoing', 'completed'])
+          where('pegawai', 'array-contains', user.username)
         );
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
           const kegiatanData: KegiatanWithProgress[] = [];
           
+          console.log('Jumlah dokumen ditemukan:', querySnapshot.size);
+          
           querySnapshot.forEach((doc) => {
             const data = doc.data();
-            const userProgress = data.progress?.[user.username];
+            console.log('Data kegiatan:', data);
             
-            kegiatanData.push({
-              id: doc.id,
-              nama_kegiatan: data.nama_kegiatan,
-              target_petugas: data.target_petugas,
-              satuan_target: data.satuan_target,
-              progress: userProgress ? {
-                target: userProgress.target,
-                tercapai: userProgress.tercapai,
-                progress_percentage: userProgress.progress_percentage,
-                last_updated: userProgress.last_updated.toDate(),
-                catatan: userProgress.catatan
-              } : undefined
-            });
+            // Pastikan field yang diperlukan ada
+            if (data.nama_kegiatan && data.target_petugas && data.satuan_target) {
+              const userProgress = data.progress?.[user.username];
+              
+              kegiatanData.push({
+                id: doc.id,
+                nama_kegiatan: data.nama_kegiatan,
+                target_petugas: data.target_petugas,
+                satuan_target: data.satuan_target,
+                pegawai: data.pegawai || [], // Pastikan ada
+                status: data.status || 'draft', // Default value
+                progress: userProgress ? {
+                  target: userProgress.target || data.target_petugas,
+                  tercapai: userProgress.tercapai || 0,
+                  progress_percentage: userProgress.progress_percentage || 0,
+                  last_updated: userProgress.last_updated?.toDate() || new Date(),
+                  catatan: userProgress.catatan || ''
+                } : undefined
+              });
+            }
           });
 
+          console.log('Kegiatan data:', kegiatanData);
           setKegiatanList(kegiatanData);
+          setLoading(false);
+        }, (error) => {
+          console.error('Error in onSnapshot:', error);
           setLoading(false);
         });
 
@@ -78,14 +95,17 @@ export default function ProgressPage() {
   }, [user]);
 
   const handleUpdateProgress = async (kegiatanId: string, tercapai: number, catatan: string) => {
-    if (!user) throw new Error('User tidak ditemukan');
+    if (!user || !user.username) throw new Error('User tidak ditemukan');
 
     try {
-      const progressPercentage = Math.round((tercapai / kegiatanList.find(k => k.id === kegiatanId)?.target_petugas || 1) * 100);
+      const kegiatan = kegiatanList.find(k => k.id === kegiatanId);
+      if (!kegiatan) throw new Error('Kegiatan tidak ditemukan');
+      
+      const progressPercentage = Math.round((tercapai / kegiatan.target_petugas) * 100);
       
       await updateDoc(doc(db, 'kegiatan', kegiatanId), {
         [`progress.${user.username}`]: {
-          target: kegiatanList.find(k => k.id === kegiatanId)?.target_petugas,
+          target: kegiatan.target_petugas,
           tercapai: tercapai,
           progress_percentage: progressPercentage,
           last_updated: new Date(),
@@ -120,7 +140,7 @@ export default function ProgressPage() {
       <div className="container mx-auto px-4 py-8">
         <PageBreadcrumb 
           pageTitle="Progress Kegiatan" 
-          items={[{ title: 'Dashboard', href: '/dashboard' }, { title: 'Progress' }]}
+          items={[{ title: 'Dashboard', href: '/' }, { title: 'Progress' }]} // Perbaiki path dashboard
         />
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -148,6 +168,14 @@ export default function ProgressPage() {
               <p className="text-gray-400 dark:text-gray-500 text-sm">
                 Admin akan menambahkan Anda ke dalam daftar petugas kegiatan
               </p>
+              
+              {/* Debug info untuk developer */}
+              {user && (
+                <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                  <p>Username: {user.username}</p>
+                  <p>Role: {user.role}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid gap-6">

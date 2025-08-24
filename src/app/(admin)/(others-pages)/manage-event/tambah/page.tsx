@@ -10,6 +10,8 @@ export const metadata: Metadata = {
 import ManageEvent from "@/app/(admin)/(others-pages)/manage-event/tambah-kegiatan"; // Pastikan path sesuai dengan lokasi file komponen
 
 export default function ManajemenKegiatanStatistikPage() {
-  return 
-  <ManageEvent />; // Impor komponen Client Component di sini
+  return (
+  <ProtectedRoute><ManageEvent /> </ProtectedRoute>// Impor komponen Client Component di sini
+  )
+  
 }

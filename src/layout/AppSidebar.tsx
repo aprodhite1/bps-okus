@@ -5,85 +5,93 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
-import { useSession } from "next-auth/react";
 import {
   GridIcon,
   CalenderIcon,
   PageIcon,
-  ListIcon,
   HorizontaLDots,
   ChevronDownIcon,
   PlusIcon,
   EyeIcon,
 } from "../icons/index";
-
+import { useUserRole } from '@/hooks/useUserRole';
 
 type NavItem = {
   name: string;
   icon: React.ReactNode;
   path?: string;
-  subItems?: { name: string; path: string; icon: React.ReactNode }[];
+  subItems?: { 
+    name: string; 
+    path: string; 
+    icon: React.ReactNode; 
+    hide?: boolean;
+  }[];
+  hide?: boolean;
 };
-
-const navItems: NavItem[] = [
-  { icon: <GridIcon />, name: "Dasbor", path: "/" },
-  {
-    icon: <PageIcon />,
-    name: "Manajemen Kegiatan",
-    subItems: [
-      { name: "Tambah Kegiatan", path: "/manage-event/tambah", icon: <PlusIcon /> },
-      { name: "Monitoring Kegiatan", path: "/kegiatan", icon: <EyeIcon /> },
-      
-    ],
-  },
-  { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
-  { icon: <ListIcon />, name: "Riwayat Kegiatan", path: "/kegiatan" },
-];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
-  const { data: session } = useSession();
-
-  // Cek role user
-  const userRole = session?.user?.role;
-
-  // Definisi menu
-  const navItems: NavItem[] = [
-    
-    { icon: <GridIcon />, name: "Capaian Kinerja Pegawai", path: "/" },
-    { icon: <CalenderIcon />, name: "Kalender Kegiatan", path: "/calendar" },
-    {
-      icon: <PageIcon />,
-      name: "Manajemen Kegiatan",
-      subItems: [
-        {
-          name: "Tambah Kegiatan",
-          path: "/manage-event/tambah",
-          icon: <PlusIcon />,
-          //hide: userRole !== "admin", // hanya admin
-        },
-        {
-          name: "Monitoring Kegiatan",
-          path: "/manage-event/monitoring",
-          icon: <EyeIcon />,
-        },
-        {
-          name: "Progres Kegiatan",
-          path: "/manage-event/progres",
-          icon: <EyeIcon />,
-        },
-      ],
-    },
-    { icon: <CalenderIcon />, name: "History Kegiatan ", path: "/kegiatan" },
-    
-  ];
+  const { userRole, loading } = useUserRole();
 
   const [openSubmenu, setOpenSubmenu] = useState<{ index: number } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
+
+  // Fungsi untuk mendapatkan navItems berdasarkan role
+  const getNavItems = (): NavItem[] => {
+    if (loading) return []; // Return empty array while loading
+
+    const navItems: NavItem[] = [
+      { 
+        icon: <GridIcon />, 
+        name: "Capaian Kinerja Pegawai", 
+        path: "/" 
+      },
+      { 
+        icon: <CalenderIcon />, 
+        name: "Kalender Kegiatan", 
+        path: "/calendar" 
+      },
+      {
+        icon: <PageIcon />,
+        name: "Manajemen Kegiatan",
+        subItems: [
+          {
+            name: "Tambah Kegiatan",
+            path: "/manage-event/tambah",
+            icon: <PlusIcon />,
+            hide: userRole !== "admin", // hanya admin
+          },
+          {
+            name: "Progres Kegiatan",
+            path: "/manage-event/progres",
+            icon: <EyeIcon />,
+            hide: userRole !== "user", // hanya user
+          },
+        ].filter(item => !item.hide),
+      },
+      { 
+        icon: <CalenderIcon />, 
+        name: "History Kegiatan", 
+        path: "/kegiatan" 
+      },
+    ];
+
+    // Filter items berdasarkan role
+    return navItems.filter(item => {
+      // Jika item memiliki subItems, periksa apakah ada subItems yang visible
+      if (item.subItems) {
+        const visibleSubItems = item.subItems.filter(subItem => !subItem.hide);
+        return visibleSubItems.length > 0;
+      }
+      return true;
+    });
+  };
+
+  const navItems = getNavItems();
 
   const renderMenuItems = (items: NavItem[]) => (
     <ul className="flex flex-col gap-4">
@@ -164,7 +172,7 @@ const AppSidebar: React.FC = () => {
             >
               <ul className="mt-2 space-y-1 ml-9">
                 {nav.subItems
-                  .filter((sub) => !sub.hide) // sembunyikan jika hide true
+                  .filter((sub) => !sub.hide)
                   .map((subItem) => (
                     <li key={subItem.name}>
                       <Link
@@ -223,6 +231,28 @@ const AppSidebar: React.FC = () => {
       setOpenSubmenu(null);
     }
   }, [pathname, isActive]);
+
+  // Tampilkan loading state jika role masih dimuat
+  if (loading) {
+    return (
+      <aside
+        className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+          ${
+            isExpanded || isMobileOpen
+              ? "w-[290px]"
+              : isHovered
+              ? "w-[290px]"
+              : "w-[90px]"
+          }
+          ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0`}
+      >
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside
@@ -293,7 +323,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen }
+        {isExpanded || isHovered || isMobileOpen}
       </div>
     </aside>
   );
