@@ -140,7 +140,7 @@ export default function ProgressPage() {
       <div className="container mx-auto px-4 py-8">
         <PageBreadcrumb 
           pageTitle="Progress Kegiatan" 
-          items={[{ title: 'Dashboard', href: '/' }, { title: 'Progress' }]} // Perbaiki path dashboard
+          
         />
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">

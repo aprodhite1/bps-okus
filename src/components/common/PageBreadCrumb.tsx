@@ -3,6 +3,7 @@ import React from "react";
 
 interface BreadcrumbProps {
   pageTitle: string;
+  
 }
 
 const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {

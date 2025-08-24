@@ -4,6 +4,18 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 
+export interface ProgressData {
+  target: number;
+  tercapai: number;
+  progress_percentage: number;
+  last_updated: any;
+  catatan?: string;
+}
+
+export interface KegiatanProgress {
+  [username: string]: ProgressData;
+}
+
 export interface Kegiatan {
   id: string;
   nama_kegiatan: string;
@@ -18,15 +30,7 @@ export interface Kegiatan {
   created_at: any;
   updated_at?: any;
   pegawai: string[];
-  progress?: {
-    [username: string]: {
-      target: number;
-      tercapai: number;
-      progress_percentage: number;
-      last_updated: any;
-      catatan?: string;
-    }
-  };
+  progress?: KegiatanProgress; // Gunakan interface yang sudah didefinisikan
 }
 
 export const useKegiatan = () => {

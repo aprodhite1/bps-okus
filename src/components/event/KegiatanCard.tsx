@@ -3,6 +3,7 @@
 import { useKegiatan } from '@/hooks/useKegiatan';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
+import { getProgressForUser } from '@/utils/typeGuards';
 
 // Fallback data untuk development
 const fallbackKegiatan = [
