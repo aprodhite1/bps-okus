@@ -46,15 +46,15 @@ const AppSidebar: React.FC = () => {
 
     const navItems: NavItem[] = [
       { 
-        icon: <GridIcon />, 
-        name: "Capaian Kinerja Pegawai", 
-        path: "/" 
-      },
-      { 
         icon: <CalenderIcon />, 
         name: "Kalender Kegiatan", 
         path: "/calendar" 
       },
+      { 
+        icon: <GridIcon />, 
+        name: "Capaian Kinerja Pegawai", 
+        path: "/" 
+      },      
       {
         icon: <PageIcon />,
         name: "Manajemen Kegiatan",
@@ -69,7 +69,7 @@ const AppSidebar: React.FC = () => {
             name: "Progres Kegiatan",
             path: "/manage-event/progres",
             icon: <EyeIcon />,
-            hide: userRole !== "user", // hanya user
+            hide: userRole === "super_admin" // hanya user
           },
         ].filter(item => !item.hide),
       },

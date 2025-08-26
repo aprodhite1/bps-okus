@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 
@@ -30,7 +30,14 @@ export interface Kegiatan {
   created_at: any;
   updated_at?: any;
   pegawai: string[];
-  progress?: KegiatanProgress; // Gunakan interface yang sudah didefinisikan
+  progress: Record<string,ProgressData
+  
+  
+  
+  
+  
+  
+  >;
 }
 
 export const useKegiatan = () => {
@@ -50,7 +57,7 @@ export const useKegiatan = () => {
       
       const q = query(
         collection(db, 'kegiatan'),
-        where('pegawai', 'array-contains', user.username),
+        
         orderBy('created_at', 'desc')
       );
 
