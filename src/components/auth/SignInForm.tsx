@@ -173,15 +173,6 @@ export default function SignInForm() {
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
-        
-        {/* 🔙 Back to Dashboard */}
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white mb-5"
-        >
-          <ChevronLeftIcon className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
 
         <div>
           <div className="mb-5 sm:mb-8">

@@ -493,7 +493,7 @@ export default function ManajemenKegiatanStatistik() {
                               <option value="" disabled>-- Pilih Pegawai --</option>
                               {pegawai.map((user) => (
                                 <option key={user.id} value={user.username}>
-                                  {user.name} ({user.username})
+                                  {user.name}
                                 </option>
                               ))}
                             </select>
