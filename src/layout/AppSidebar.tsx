@@ -76,7 +76,8 @@ const AppSidebar: React.FC = () => {
       { 
         icon: <CalenderIcon />, 
         name: "History Kegiatan", 
-        path: "/kegiatan" 
+        path: "/kegiatan-selesai",
+        hide : userRole !== "admin",
       },
     ];
 
