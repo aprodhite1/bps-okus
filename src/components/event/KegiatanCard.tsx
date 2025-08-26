@@ -87,22 +87,7 @@ export default function KegiatanCard() {
   }, [error, retryCount]);
 
   // Fungsi untuk menandai kegiatan sebagai selesai
-  const tandaiSelesai = async (kegiatanId: string) => {
-    if (!user) return;
-    
-    try {
-      const kegiatanRef = doc(db, 'kegiatan', kegiatanId);
-      await updateDoc(kegiatanRef, {
-        status: 'selesai',
-        completedAt: new Date(),
-        completedBy: user.username
-      });
-      alert('Kegiatan berhasil ditandai sebagai selesai!');
-    } catch (error) {
-      console.error('Error menandai kegiatan selesai:', error);
-      alert('Gagal menandai kegiatan sebagai selesai');
-    }
-  };
+ 
 
   // Filter kegiatan berdasarkan status
   const filteredKegiatan = useFallback 
@@ -208,7 +193,7 @@ export default function KegiatanCard() {
     if (totalTarget === 0) return 0;
     
     // Hitung progress persentase berdasarkan total tercapai dan total target
-    return Math.round((totalTercapai / totalTarget) * 100);
+    return Math.round((totalTercapai / (totalTarget*totalPegawai) ) * 100);
   };
 
   // Hitung rata-rata progress semua kegiatan
@@ -312,7 +297,7 @@ export default function KegiatanCard() {
           const progressValues = Object.values(item.progress || {});
           const totalTercapai = progressValues.reduce((sum, progress) => sum + progress.tercapai, 0);
           const totalTarget = progressValues.reduce((sum, progress) => sum + progress.target, 0);
-
+          const total = totalTarget*jumlahPegawai
          
 
           return (
@@ -320,15 +305,7 @@ export default function KegiatanCard() {
               <div className="flex justify-between items-start mb-2">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {item.nama_kegiatan}
-                </h3>
-                
-                  <button
-                    onClick={() => tandaiSelesai(item.id)}
-                    className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700"
-                  >
-                    Tandai Selesai
-                  </button>
-                
+                </h3> 
               </div>
               
               <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
@@ -349,7 +326,7 @@ export default function KegiatanCard() {
                 <p><strong>IKU:</strong> {item.iku}</p>
                 <p><strong>RK:</strong> {item.rk}</p>
                 <p><strong>Proyek:</strong> {item.proyek}</p>
-                <p><strong>Target:</strong> {item.target_petugas} {item.satuan_target}</p>
+                <p><strong>Target:</strong> {total} {item.satuan_target}</p>
                 <p><strong>Periode:</strong> {formatDate(item.tanggal_mulai)} - {formatDate(item.tanggal_selesai)}</p>
               </div>
 
@@ -363,7 +340,7 @@ export default function KegiatanCard() {
                   ></div>
                 </div>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {progressKegiatan}% ({totalTercapai}/{totalTarget || item.target_petugas} {item.satuan_target})
+                  {progressKegiatan}% ({totalTercapai}/{total || item.target_petugas} {item.satuan_target})
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {jumlahProgressDiisi}/{jumlahPegawai} pegawai telah mengisi progress
@@ -402,9 +379,12 @@ export default function KegiatanCard() {
                   </div>
                 </div>
               )}
+              
             </div>
+            
           );
         })}
+        
       </div>
     </div>
   );
