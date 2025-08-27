@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-
 import React from "react";
-
+import MonitoringKinerjaASN from "@/components/event/monitoringASN";
 import KegiatanCard from "@/components/event/KegiatanCard";
 
 export const metadata: Metadata = {
@@ -19,6 +18,11 @@ export default function Ecommerce() {
       <div className="col-span-12 xl:col-span-7">
         <KegiatanCard />
       </div>
+
+      <div className="col-span-12 xl:col-span-7">
+        <MonitoringKinerjaASN />
+      </div>
+
     </div></ProtectedRoute>
     
   );
