@@ -94,6 +94,19 @@ export default function KegiatanCard() {
   // Common buttons component
   const renderButtons = () => (
     <div className="flex space-x-4">
+
+      <button
+        onClick={() => setViewMode('monitoring')}
+        className={`px-4 py-2 rounded-md ${
+          viewMode === 'monitoring'
+            ? 'bg-purple-600 text-white'
+            : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+        }`}
+        aria-label="Tampilkan Monitoring Kinerja ASN"
+      >
+        Monitoring Kinerja ASN
+      </button>
+      
       <button
         onClick={() => setViewMode('aktif')}
         className={`px-4 py-2 rounded-md ${
@@ -116,17 +129,7 @@ export default function KegiatanCard() {
       >
         Kegiatan Selesai
       </button>
-      <button
-        onClick={() => setViewMode('monitoring')}
-        className={`px-4 py-2 rounded-md ${
-          viewMode === 'monitoring'
-            ? 'bg-purple-600 text-white'
-            : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-        }`}
-        aria-label="Tampilkan Monitoring Kinerja ASN"
-      >
-        Monitoring Kinerja ASN
-      </button>
+      
     </div>
   );
 
