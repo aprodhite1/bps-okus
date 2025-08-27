@@ -10,27 +10,34 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 // Define event color classes for light and dark modes
 const eventColorClasses: { [key: string]: string } = {
-  'fc-bg-primary': 'bg-blue-500 dark:bg-blue-400', // Lighter blue in dark mode
-  'fc-bg-success': 'bg-green-500 dark:bg-green-400', // Lighter green
-  'fc-bg-warning': 'bg-yellow-500 dark:bg-yellow-300', // Lighter yellow
-  'fc-bg-danger': 'bg-red-500 dark:bg-red-400', // Lighter red
-  'fc-bg-info': 'bg-cyan-500 dark:bg-cyan-300', // Lighter cyan
+  "fc-bg-primary": "bg-blue-500 dark:bg-blue-400",
+  "fc-bg-success": "bg-green-500 dark:bg-green-400",
+  "fc-bg-warning": "bg-yellow-500 dark:bg-yellow-300",
+  "fc-bg-danger": "bg-red-500 dark:bg-red-400",
+  "fc-bg-info": "bg-cyan-500 dark:bg-cyan-300",
 };
 
 const Calendar: React.FC = () => {
   const { events, loading: eventsLoading } = useCalendarEvents();
-  const { userRole, loading: roleLoading } = useUserRole(); // Use useUserRole hook
+  const { userRole, loading: roleLoading } = useUserRole();
   const calendarRef = useRef<FullCalendar>(null);
   const router = useRouter();
 
-  // Role check to match AppSidebar (only "admin" role)
   const isAdmin = userRole === "admin";
 
-  // Debug user role
+  // Debug event data and view changes
   useEffect(() => {
     console.log("userRole:", userRole);
     console.log("isAdmin:", isAdmin);
-  }, [userRole, isAdmin]);
+    console.log("Events:", events.map(event => ({
+      id: event.id,
+      title: event.title,
+      start: event.start,
+      end: event.end,
+      allDay: event.allDay,
+      extendedProps: event.extendedProps,
+    })));
+  }, [userRole, isAdmin, events]);
 
   const handleAddEventClick = () => {
     router.push("/manage-event/tambah");
@@ -43,44 +50,44 @@ const Calendar: React.FC = () => {
 
   const handleDateClick = (clickInfo: any) => {
     const selectedDate = new Date(clickInfo.dateStr);
-    // Check if the selected date falls within any event's date range
     const isDateInEventRange = events.some((event: any) => {
       const startDate = new Date(event.start);
       const endDate = event.end ? new Date(event.end) : new Date(event.start);
-      // Ensure endDate includes the full day
       endDate.setHours(23, 59, 59, 999);
       return selectedDate >= startDate && selectedDate <= endDate;
     });
 
     if (isDateInEventRange && isAdmin) {
-      // Only redirect if the date is within an event range and user is admin
       router.push(`/manage-event/tambah?date=${clickInfo.dateStr}`);
     }
   };
 
   const renderEventContent = (eventInfo: any) => {
     const event = eventInfo.event;
-    const calendarType = event.extendedProps.calendar?.toLowerCase() || 'primary';
-    const colorClass = eventColorClasses[`fc-bg-${calendarType}`] || eventColorClasses['fc-bg-primary'];
+    const calendarType = event.extendedProps.calendar?.toLowerCase() || "primary";
+    const colorClass = eventColorClasses[`fc-bg-${calendarType}`] || eventColorClasses["fc-bg-primary"];
 
     return (
       <div className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm text-white`}>
-        <div className="fc-daygrid-event-dot border-white dark:border-blue-300"></div>
-        <div className="fc-event-time text-xs">{eventInfo.timeText}</div>
-        <div className="fc-event-title text-xs font-medium">{eventInfo.event.title}</div>
-        {event.extendedProps.target_petugas > 0 && (
-          <div className="fc-event-target text-xs ml-1">
-            ({event.extendedProps.target_petugas} {event.extendedProps.satuan_target})
-          </div>
-        )}
+        <div className="fc-daygrid-event-dot border-white dark:border-gray-300 flex-shrink-0"></div>
+        <div className="flex-1 overflow-hidden">
+          {eventInfo.timeText && (
+            <div className="fc-event-time text-xs">{eventInfo.timeText}</div>
+          )}
+          <div className="fc-event-title text-xs font-medium truncate">{eventInfo.event.title}</div>
+          {event.extendedProps.target_petugas > 0 && (
+            <div className="fc-event-target text-xs truncate">
+              ({event.extendedProps.target_petugas} {event.extendedProps.satuan_target})
+            </div>
+          )}
+        </div>
       </div>
     );
   };
 
-  // Show loading state if either events or role is loading
   if (eventsLoading || roleLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-8">
+      <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 p-8">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-400"></div>
         </div>
@@ -89,7 +96,7 @@ const Calendar: React.FC = () => {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] p-4 xl:p-6">
+    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 p-4 xl:p-6">
       <style jsx global>{`
         .custom-calendar .fc {
           --fc-bg-color: #ffffff;
@@ -104,7 +111,7 @@ const Calendar: React.FC = () => {
           --fc-event-border-color: transparent;
         }
         .dark .custom-calendar .fc {
-          --fc-bg-color: rgba(255, 255, 255, 0.03);
+          --fc-bg-color: #1f2937;
           --fc-border-color: #374151;
           --fc-text-color: #e5e7eb;
           --fc-button-bg-color: #4b5563;
@@ -134,22 +141,23 @@ const Calendar: React.FC = () => {
           background-color: var(--fc-button-active-bg-color);
         }
         .custom-calendar .fc .fc-button-primary.fc-addEventButton-button {
-          background-color: #3b82f6; /* Tailwind blue-500 */
+          background-color: #3b82f6;
           border-color: #3b82f6;
-          color: #ffffff; /* Fixed white text for Tambah Kegiatan */
+          color: #ffffff;
         }
         .custom-calendar .fc .fc-button-primary.fc-addEventButton-button:hover {
-          background-color: #2563eb; /* Tailwind blue-600 */
+          background-color: #2563eb;
           border-color: #2563eb;
           color: #ffffff;
         }
         .custom-calendar .fc .fc-button-primary.fc-addEventButton-button:active,
         .custom-calendar .fc .fc-button-primary.fc-addEventButton-button.fc-button-active {
-          background-color: #1d4ed8; /* Tailwind blue-700 */
+          background-color: #1d4ed8;
           border-color: #1d4ed8;
           color: #ffffff;
         }
-        .custom-calendar .fc .fc-daygrid-day.fc-day-today {
+        .custom-calendar .fc .fc-daygrid-day.fc-day-today,
+        .custom-calendar .fc .fc-timegrid-col.fc-day-today {
           background-color: var(--fc-today-bg-color);
         }
         .custom-calendar .fc .fc-col-header-cell,
@@ -166,10 +174,16 @@ const Calendar: React.FC = () => {
         .custom-calendar .fc .fc-event {
           border: none;
           border-radius: 0.25rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for light mode */
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .dark .custom-calendar .fc .fc-event {
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Slightly darker shadow for dark mode */
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .custom-calendar .fc .fc-timegrid-event .fc-event-main {
+          padding: 2px 4px;
+        }
+        .custom-calendar .fc .fc-timegrid-event .fc-event-time {
+          margin-right: 4px;
         }
       `}</style>
       <div className="custom-calendar">
@@ -182,7 +196,16 @@ const Calendar: React.FC = () => {
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
-          events={events}
+          events={events.map((event: any) => {
+            const startStr = event.start instanceof Date ? event.start.toISOString() : event.start;
+            const endStr = event.end instanceof Date ? event.end.toISOString() : event.end;
+            return {
+              ...event,
+              start: startStr,
+              end: endStr,
+              allDay: !startStr.includes("T") && (!endStr || !endStr.includes("T")),
+            };
+          })}
           eventContent={renderEventContent}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
@@ -196,10 +219,23 @@ const Calendar: React.FC = () => {
           eventTimeFormat={{
             hour: "2-digit",
             minute: "2-digit",
-            meridiem: "short",
+            meridiem: false,
           }}
+          slotMinTime="00:00:00"
+          slotMaxTime="24:00:00"
+          allDaySlot={true}
           height="auto"
-          locale="id" // Set locale to Indonesian
+          locale="id"
+          eventDidMount={(info) => {
+            console.log("Event rendered:", {
+              id: info.event.id,
+              title: info.event.title,
+              start: info.event.start,
+              end: info.event.end,
+              allDay: info.event.allDay,
+              extendedProps: info.event.extendedProps,
+            });
+          }}
         />
       </div>
     </div>
