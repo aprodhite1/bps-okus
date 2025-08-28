@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import React from "react";
-import MonitoringKinerjaASN from "@/components/event/MonitoringKinerjaASN";
+
 import KegiatanCard from "@/components/event/KegiatanCard";
 
 export const metadata: Metadata = {

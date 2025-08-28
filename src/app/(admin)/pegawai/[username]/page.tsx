@@ -7,30 +7,10 @@ import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 // Interface untuk data progress
-interface UserProgress {
-  tercapai: number;
-  target: number;
-  progress_percentage: number;
-  catatan?: string;
-}
+
 
 // Interface untuk data kegiatan
-interface Kegiatan {
-  id: string;
-  nama_kegiatan: string;
-  iku: string;
-  rk: string;
-  proyek: string;
-  tanggal_mulai: Date;
-  tanggal_selesai: Date;
-  target_petugas: number;
-  satuan_target: string;
-  status: string;
-  created_at: Date;
-  pegawai: string[];
-  progress: Record<string, UserProgress>;
-  createdBy?: string;
-}
+
 
 export default function PegawaiDetail() {
   const { username } = useParams(); // Get username from URL

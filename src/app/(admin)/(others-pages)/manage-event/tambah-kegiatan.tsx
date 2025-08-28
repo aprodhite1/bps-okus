@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // tambah-kegiatan.tsx
 
 "use client";
@@ -13,7 +14,7 @@ import LoadingSpinner from '@/components/Loading/LoadingSpinner';
 import { usePegawai } from '@/hooks/usePegawai';
 import { useAuth } from '@/context/AuthContext';
 import { Plus, Minus } from "lucide-react";
-import { IkuItem, RkItem, ProyekItem, ikuRkData } from "@/components/ikurkproyek/ikurkproyek";
+import {  ikuRkData } from "@/components/ikurkproyek/ikurkproyek";
 
 // Interfaces for form data
 interface PetugasTarget {

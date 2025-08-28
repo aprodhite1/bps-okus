@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from 'react';
+import { useState, useEffect,  } from 'react';
 import { 
   collection, 
   query, 
@@ -98,7 +98,7 @@ export function useCalendarEvents() {
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [convertToCalendarEvent]);
 
   return { events, loading };
 }

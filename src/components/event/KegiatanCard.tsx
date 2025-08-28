@@ -3,8 +3,7 @@
 import { useKegiatan } from '@/hooks/useKegiatan';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+
 import { useRouter } from 'next/navigation';
 import MonitoringKinerjaASN from '@/components/event/MonitoringKinerjaASN';
 
