@@ -1,6 +1,5 @@
 'use client';
 
-import { useKegiatan } from '@/hooks/useKegiatan';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
@@ -13,6 +12,13 @@ interface UserProgress {
   target: number;
   progress_percentage: number;
   catatan?: string;
+  last_updated?: Date;
+}
+
+// Interface untuk petugas target
+interface PetugasTarget {
+  pegawai: string;
+  target: number;
 }
 
 // Interface untuk data kegiatan
@@ -22,15 +28,15 @@ interface Kegiatan {
   iku: string;
   rk: string;
   proyek: string;
-  tanggal_mulai: Date;
-  tanggal_selesai: Date;
-  target_petugas: number;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
   satuan_target: string;
   status: string;
   created_at: Date;
-  pegawai: string[];
+  updated_at: Date;
+  created_by: string;
+  petugas_target: PetugasTarget[];
   progress: Record<string, UserProgress>;
-  createdBy?: string;
 }
 
 // Interface untuk data agregasi pegawai
@@ -43,91 +49,92 @@ interface PegawaiData {
   persentaseSelesai: number;
 }
 
-// Fallback data untuk development
-const fallbackKegiatan: Kegiatan[] = [
-  {
-    id: '1',
-    nama_kegiatan: 'Penyusunan Laporan Triwulan',
-    iku: 'IKU 1.2.3',
-    rk: 'RK.01.02',
-    proyek: 'Proyek Monitoring',
-    tanggal_mulai: new Date('2024-01-15'),
-    tanggal_selesai: new Date('2024-03-31'),
-    target_petugas: 100,
-    satuan_target: 'dokumen',
-    status: 'draft',
-    created_at: new Date('2024-01-10'),
-    pegawai: ['user1', 'user2', 'user3'],
-    createdBy: 'admin1',
-    progress: {
-      user1: {
-        tercapai: 30,
-        target: 50,
-        progress_percentage: 60,
-        catatan: 'Sedang dalam proses',
-      },
-      user2: {
-        tercapai: 40,
-        target: 50,
-        progress_percentage: 80,
-        catatan: 'Hampir selesai',
-      },
-    },
-  },
-];
-
-// Mock user names untuk fallback
-const fallbackUserNames: Record<string, string> = {
-  user1: 'John Doe',
-  user2: 'Jane Smith',
-  user3: 'Budi Santoso',
-};
-
 export default function MonitoringKinerjaASN() {
   const { user } = useAuth();
-  const { kegiatan, loading, error } = useKegiatan();
-  const [useFallback, setUseFallback] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const [kegiatan, setKegiatan] = useState<Kegiatan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [pegawaiData, setPegawaiData] = useState<PegawaiData[]>([]);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
-  const [usersError, setUsersError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Fetch kegiatan dari Firestore
+  useEffect(() => {
+    const fetchKegiatan = async () => {
+      try {
+        setLoading(true);
+        const kegiatanRef = collection(db, 'kegiatan');
+        const kegiatanSnap = await getDocs(kegiatanRef);
+        
+        const kegiatanData: Kegiatan[] = [];
+        kegiatanSnap.forEach((doc) => {
+          const data = doc.data();
+          kegiatanData.push({
+            id: doc.id,
+            ...data,
+            created_at: data.created_at?.toDate() || new Date(),
+            updated_at: data.updated_at?.toDate() || new Date(),
+          } as Kegiatan);
+        });
+
+        setKegiatan(kegiatanData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching kegiatan:', err);
+        setError('Gagal memuat data kegiatan');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKegiatan();
+  }, []);
 
   // Fetch user names dari Firestore
   useEffect(() => {
     const fetchUserNames = async () => {
-      if (useFallback) {
-        setUserNames(fallbackUserNames);
-        return;
-      }
       try {
         const usersRef = collection(db, 'users');
         const usersSnap = await getDocs(usersRef);
-        const names = Object.fromEntries(
-          usersSnap.docs.map((doc) => [doc.id, doc.data().name || doc.id])
-        );
+        const names: Record<string, string> = {};
+        
+        usersSnap.forEach((doc) => {
+          const userData = doc.data();
+          names[userData.username] = userData.name || userData.username;
+        });
+
         setUserNames(names);
       } catch (err) {
         console.error('Error fetching user names:', err);
-        setUsersError('Gagal memuat nama pegawai');
-        setUserNames({});
+        // Fallback: gunakan username sebagai nama
+        const fallbackNames: Record<string, string> = {};
+        kegiatan.forEach(k => {
+          k.petugas_target?.forEach(pt => {
+            fallbackNames[pt.pegawai] = pt.pegawai;
+          });
+        });
+        setUserNames(fallbackNames);
       }
     };
-    fetchUserNames();
-  }, [useFallback]);
 
-  // Aggregasi data pegawai
+    if (kegiatan.length > 0) {
+      fetchUserNames();
+    }
+  }, [kegiatan]);
+
+  // Aggregasi data pegawai berdasarkan petugas_target
   useEffect(() => {
-    const dataToUse = useFallback ? fallbackKegiatan : kegiatan || [];
-
     const aggregation: Record<string, PegawaiData> = {};
 
-    dataToUse.forEach((k) => {
-      k.pegawai.forEach((pegawai) => {
-        if (!aggregation[pegawai]) {
-          aggregation[pegawai] = {
-            namaPegawai: userNames[pegawai] || pegawai,
-            username: pegawai,
+    kegiatan.forEach((kegiatanItem) => {
+      // Loop melalui petugas_target bukan pegawai array
+      kegiatanItem.petugas_target?.forEach((petugas) => {
+        const username = petugas.pegawai;
+        
+        if (!aggregation[username]) {
+          aggregation[username] = {
+            namaPegawai: userNames[username] || username,
+            username: username,
             jumlahKegiatan: 0,
             targetTotal: 0,
             totalTercapai: 0,
@@ -135,40 +142,31 @@ export default function MonitoringKinerjaASN() {
           };
         }
 
-        aggregation[pegawai].jumlahKegiatan += 1;
-        const progress = k.progress[pegawai];
-        if (progress) {
-          aggregation[pegawai].targetTotal += progress.target;
-          aggregation[pegawai].totalTercapai += progress.tercapai;
-          aggregation[pegawai].persentaseSelesai += progress.progress_percentage;
+        aggregation[username].jumlahKegiatan += 1;
+        aggregation[username].targetTotal += petugas.target;
+
+        // Cek progress user
+        const userProgress = kegiatanItem.progress?.[username];
+        if (userProgress) {
+          aggregation[username].totalTercapai += userProgress.tercapai;
+          aggregation[username].persentaseSelesai += userProgress.progress_percentage;
         }
       });
     });
 
     // Hitung persentase selesai rata-rata
-    const finalData = Object.entries(aggregation).map(([username, data]) => ({
-      namaPegawai: data.namaPegawai,
-      username,
-      jumlahKegiatan: data.jumlahKegiatan,
-      targetTotal: data.targetTotal,
-      totalTercapai: data.totalTercapai,
-      persentaseSelesai: data.jumlahKegiatan > 0 ? Math.round(data.persentaseSelesai / data.jumlahKegiatan) : 0,
+    const finalData = Object.values(aggregation).map((data) => ({
+      ...data,
+      persentaseSelesai: data.jumlahKegiatan > 0 
+        ? Math.round(data.persentaseSelesai / data.jumlahKegiatan)
+        : 0,
     }));
 
-    setPegawaiData(finalData);
-  }, [kegiatan, useFallback, userNames]);
+    // Urutkan berdasarkan nama pegawai
+    finalData.sort((a, b) => a.namaPegawai.localeCompare(b.namaPegawai));
 
-  // Handle error dengan fallback
-  useEffect(() => {
-    if (error && retryCount < 2) {
-      const timer = setTimeout(() => {
-        console.log('Mencoba kembali...');
-        setRetryCount((prev) => prev + 1);
-        setUseFallback(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, retryCount]);
+    setPegawaiData(finalData);
+  }, [kegiatan, userNames]);
 
   // Handle row click untuk navigasi
   const handleRowClick = (username: string) => {
@@ -185,8 +183,8 @@ export default function MonitoringKinerjaASN() {
     );
   }
 
-  // Error state untuk kegiatan atau user names
-  if ((error || usersError) && !useFallback) {
+  // Error state
+  if (error) {
     return (
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md dark:shadow-gray-900/50 p-6">
         <div className="flex items-center mb-4">
@@ -198,27 +196,17 @@ export default function MonitoringKinerjaASN() {
           <div className="ml-3">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">Gagal Memuat Data</h3>
             <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              <p>{error || usersError}</p>
+              <p>{error}</p>
               <p className="mt-2">Silakan coba lagi dalam beberapa saat.</p>
             </div>
           </div>
         </div>
-        <div className="mt-6 flex space-x-4">
+        <div className="mt-6">
           <button
-            onClick={() => {
-              setRetryCount(0);
-              setUseFallback(false);
-              window.location.reload();
-            }}
+            onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           >
             Coba Lagi
-          </button>
-          <button
-            onClick={() => setUseFallback(true)}
-            className="px-4 py-2 bg-gray-600 dark:bg-gray-500 text-white rounded-md hover:bg-gray-700 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400"
-          >
-            Gunakan Data Contoh
           </button>
         </div>
       </div>
@@ -236,9 +224,9 @@ export default function MonitoringKinerjaASN() {
         <p className="text-gray-500 dark:text-gray-400 text-sm">
           Tidak ada pegawai yang terlibat dalam kegiatan saat ini.
         </p>
-        {user && (
+        {user?.role === 'admin' && (
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-            <p>Hubungi administrator untuk ditambahkan ke dalam kegiatan.</p>
+            <p>Tambahkan pegawai ke dalam kegiatan melalui menu `Tambah Kegiatan``.</p>
           </div>
         )}
       </div>
@@ -247,13 +235,22 @@ export default function MonitoringKinerjaASN() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Monitoring Kinerja ASN</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Monitoring Kinerja ASN</h2>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          Total: {pegawaiData.length} pegawai
+        </span>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md dark:shadow-gray-900/50">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Nama Pegawai
+              </th>
+              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Username
               </th>
               <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Jumlah Kegiatan
@@ -281,24 +278,27 @@ export default function MonitoringKinerjaASN() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {pegawai.namaPegawai}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                  {pegawai.username}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
                   {pegawai.jumlahKegiatan}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {pegawai.targetTotal}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                  {pegawai.targetTotal.toLocaleString('id-ID')}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                  {pegawai.totalTercapai}/{pegawai.targetTotal}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                  {pegawai.totalTercapai.toLocaleString('id-ID')}/{pegawai.targetTotal.toLocaleString('id-ID')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 mr-2">
                       <div
-                        className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full"
+                        className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(pegawai.persentaseSelesai, 100)}%` }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-900 dark:text-white">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[40px]">
                       {pegawai.persentaseSelesai}%
                     </span>
                   </div>
@@ -307,6 +307,29 @@ export default function MonitoringKinerjaASN() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Summary */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+        <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">📊 Ringkasan Kinerja</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-blue-700 dark:text-blue-300">
+          <div>
+            <span className="font-semibold">Total Pegawai:</span> {pegawaiData.length}
+          </div>
+          <div>
+            <span className="font-semibold">Total Kegiatan:</span> {kegiatan.length}
+          </div>
+          <div>
+            <span className="font-semibold">Rata-rata Progress:</span>{" "}
+            {pegawaiData.length > 0
+              ? Math.round(pegawaiData.reduce((sum, p) => sum + p.persentaseSelesai, 0) / pegawaiData.length)
+              : 0}%
+          </div>
+          <div>
+            <span className="font-semibold">Pegawai Aktif:</span>{" "}
+            {pegawaiData.filter(p => p.jumlahKegiatan > 0).length}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// components/ProgressCard.tsx
+// components/progres/progressCard.tsx
 "use client";
 import { useState } from 'react';
 

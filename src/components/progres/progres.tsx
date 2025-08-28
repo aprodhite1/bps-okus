@@ -1,9 +1,9 @@
 // app/progress/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
-import { collection, query, where, updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, query, updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useAuth } from '@/context/AuthContext'; // Pastikan path ini benar
+import { useAuth } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import ProgressCard from '@/components/progres/progressCard';
@@ -16,13 +16,18 @@ interface ProgressData {
   catatan?: string;
 }
 
+interface PetugasTarget {
+  pegawai: string;
+  target: number;
+}
+
 interface KegiatanWithProgress {
   id: string;
   nama_kegiatan: string;
   target_petugas: number;
   satuan_target: string;
-  pegawai: string[]; // Tambahkan ini
-  status: string; // Tambahkan ini
+  status: string;
+  petugas_target: PetugasTarget[];
   progress?: ProgressData;
 }
 
@@ -30,6 +35,7 @@ export default function ProgressPage() {
   const { user } = useAuth();
   const [kegiatanList, setKegiatanList] = useState<KegiatanWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [allKegiatanCount, setAllKegiatanCount] = useState(0);
   const [, setEditingKegiatan] = useState<string | null>(null);
 
   useEffect(() => {
@@ -37,36 +43,71 @@ export default function ProgressPage() {
 
     const fetchKegiatan = async () => {
       try {
-        console.log('Fetching kegiatan for user:', user.username);
+        console.log('🔍 Fetching kegiatan untuk user:', user.username);
         
-        // Query yang lebih sederhana - hanya filter by pegawai dulu
-        const q = query(
-          collection(db, 'kegiatan'),
-          where('pegawai', 'array-contains', user.username)
-        );
+        // Query semua kegiatan
+        const q = query(collection(db, 'kegiatan'));
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
           const kegiatanData: KegiatanWithProgress[] = [];
+          let totalDocs = 0;
+          let assignedDocs = 0;
           
-          console.log('Jumlah dokumen ditemukan:', querySnapshot.size);
+          console.log('📊 Total dokumen ditemukan:', querySnapshot.size);
+          setAllKegiatanCount(querySnapshot.size);
           
           querySnapshot.forEach((doc) => {
+            totalDocs++;
             const data = doc.data();
-            console.log('Data kegiatan:', data);
             
-            // Pastikan field yang diperlukan ada
-            if (data.nama_kegiatan && data.target_petugas && data.satuan_target) {
+            // Debug: log semua data kegiatan
+            console.log(`📋 Dokumen ${totalDocs}:`, {
+              id: doc.id,
+              nama: data.nama_kegiatan,
+              petugas_target: data.petugas_target,
+              hasPetugasTarget: !!data.petugas_target,
+              petugasTargetType: Array.isArray(data.petugas_target) ? 'array' : typeof data.petugas_target
+            });
+
+            // Pastikan petugas_target adalah array
+            if (!Array.isArray(data.petugas_target)) {
+              console.log('❌ petugas_target bukan array, skip:', doc.id);
+              return;
+            }
+
+            // Filter: cek apakah user ada dalam petugas_target
+            const isUserAssigned = data.petugas_target.some(
+              (petugas: PetugasTarget) => {
+                const isMatch = petugas.pegawai === user.username;
+                console.log(`   🔍 Cek ${petugas.pegawai} == ${user.username}: ${isMatch}`);
+                return isMatch;
+              }
+            );
+
+            console.log(`   ✅ User ${user.username} assigned: ${isUserAssigned}`);
+
+            if (isUserAssigned && data.nama_kegiatan && data.satuan_target) {
+              assignedDocs++;
+              
+              // Dapatkan target khusus untuk user ini
+              const userTargetObj = data.petugas_target.find(
+                (petugas: PetugasTarget) => petugas.pegawai === user.username
+              );
+              
+              const userTarget = userTargetObj?.target || 0;
               const userProgress = data.progress?.[user.username];
               
+              console.log(`   🎯 Target user: ${userTarget}`);
+
               kegiatanData.push({
                 id: doc.id,
                 nama_kegiatan: data.nama_kegiatan,
-                target_petugas: data.target_petugas,
+                target_petugas: userTarget,
                 satuan_target: data.satuan_target,
-                pegawai: data.pegawai || [], // Pastikan ada
-                status: data.status || 'draft', // Default value
+                status: data.status || 'draft',
+                petugas_target: data.petugas_target,
                 progress: userProgress ? {
-                  target: userProgress.target || data.target_petugas,
+                  target: userProgress.target || userTarget,
                   tercapai: userProgress.tercapai || 0,
                   progress_percentage: userProgress.progress_percentage || 0,
                   last_updated: userProgress.last_updated?.toDate() || new Date(),
@@ -76,17 +117,22 @@ export default function ProgressPage() {
             }
           });
 
-          console.log('Kegiatan data:', kegiatanData);
+          console.log('📈 Hasil filtering:');
+          console.log('   Total dokumen:', totalDocs);
+          console.log('   Dokumen assigned:', assignedDocs);
+          console.log('   Kegiatan ditampilkan:', kegiatanData.length);
+          console.log('   Detail kegiatan:', kegiatanData);
+
           setKegiatanList(kegiatanData);
           setLoading(false);
         }, (error) => {
-          console.error('Error in onSnapshot:', error);
+          console.error('❌ Error in onSnapshot:', error);
           setLoading(false);
         });
 
         return () => unsubscribe();
       } catch (error) {
-        console.error('Error fetching kegiatan:', error);
+        console.error('❌ Error fetching kegiatan:', error);
         setLoading(false);
       }
     };
@@ -128,9 +174,9 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen flex items-center justify-center">
+        
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+       
       </ProtectedRoute>
     );
   }
@@ -138,10 +184,7 @@ export default function ProgressPage() {
   return (
     <ProtectedRoute>
       <div className="container mx-auto px-4 py-8">
-        <PageBreadcrumb 
-          pageTitle="Progress Kegiatan" 
-          
-        />
+        <PageBreadcrumb pageTitle="Progress Kegiatan" />
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
@@ -153,6 +196,19 @@ export default function ProgressPage() {
                 {kegiatanList.length} Kegiatan
               </span>
             )}
+          </div>
+
+          {/* Debug Information */}
+          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+              🔍 Debug Information
+            </h3>
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+              <p>👤 User: {user?.username}</p>
+              <p>🏢 Role: {user?.role}</p>
+              <p>📊 Total Kegiatan di DB: {allKegiatanCount}</p>
+              <p>✅ Kegiatan Ditugaskan: {kegiatanList.length}</p>
+            </div>
           </div>
 
           {kegiatanList.length === 0 ? (
@@ -169,11 +225,14 @@ export default function ProgressPage() {
                 Admin akan menambahkan Anda ke dalam daftar petugas kegiatan
               </p>
               
-              {/* Debug info untuk developer */}
-              {user && (
-                <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded text-xs">
-                  <p>Username: {user.username}</p>
-                  <p>Role: {user.role}</p>
+              {user && allKegiatanCount > 0 && (
+                <div className="mt-4 p-3 bg-yellow-100 dark:bg-yellow-900/20 rounded text-xs">
+                  <p className="text-yellow-800 dark:text-yellow-400">
+                    ⚠️ Ditemukan {allKegiatanCount} kegiatan, tapi tidak ada yang ditugaskan ke user ini.
+                  </p>
+                  <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                    Pastikan username `{user.username}` ada di field petugas_target.
+                  </p>
                 </div>
               )}
             </div>
