@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// tambah-kegiatan.tsx
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -14,7 +11,7 @@ import LoadingSpinner from '@/components/Loading/LoadingSpinner';
 import { usePegawai } from '@/hooks/usePegawai';
 import { useAuth } from '@/context/AuthContext';
 import { Plus, Minus } from "lucide-react";
-import {  ikuRkData } from "@/components/ikurkproyek/ikurkproyek";
+import { ikuRkData } from "@/components/ikurkproyek/ikurkproyek";
 
 // Interfaces for form data
 interface PetugasTarget {
@@ -205,6 +202,16 @@ export default function ManajemenKegiatanStatistik() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user?.username) {
+      setAlert({
+        show: true,
+        message: "Anda harus login untuk menambahkan kegiatan",
+        type: "error",
+      });
+      setTimeout(() => setAlert({ show: false, message: "", type: "" }), 5000);
+      return;
+    }
+
     if (!validateForm()) {
       setAlert({
         show: true,
@@ -234,7 +241,7 @@ export default function ManajemenKegiatanStatistik() {
         created_at: new Date(),
         updated_at: new Date(),
         status: 'draft',
-        created_by: user?.id || 'unknown',
+        created_by: user.username, // Use username instead of id
       };
 
       const docRef = await addDoc(collection(db, "kegiatan"), kegiatanData);
@@ -298,6 +305,17 @@ export default function ManajemenKegiatanStatistik() {
         <PageBreadcrumb pageTitle="Tambah Kegiatan" />
         <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03]">
           <LoadingSpinner text="Memuat data pegawai..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div>
+        <PageBreadcrumb pageTitle="Tambah Kegiatan" />
+        <div className="min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03]">
+          <p className="text-red-600 dark:text-red-400">Anda harus login untuk menambahkan kegiatan.</p>
         </div>
       </div>
     );
@@ -447,7 +465,7 @@ export default function ManajemenKegiatanStatistik() {
                     )}
                   </div>
                   <div>
-                    <label htmlFor="tanggal-selesai" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
+                    <label htmlFor="tanggal-selesai" className="mb-3  block text-base font-medium text-gray-800 dark:text-gray-200">
                       Tanggal Selesai <span className="text-error-500">*</span>
                     </label>
                     <Flatpickr
@@ -543,7 +561,6 @@ export default function ManajemenKegiatanStatistik() {
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.petugasTarget}</p>
                   )}
                 </div>
-
 
                 <div className="w-full mb-8">
                   <label htmlFor="satuan-target" className="mb-3 block text-base font-medium text-gray-800 dark:text-gray-200">
