@@ -69,7 +69,7 @@ const AppSidebar: React.FC = () => {
             name: "Progres Kegiatan",
             path: "/manage-event/progres",
             icon: <EyeIcon />,
-            hide: userRole === "super_admin" // hanya user
+            hide: userRole === "super_admin", // hanya user
           },
         ].filter(item => !item.hide),
       },
@@ -77,13 +77,12 @@ const AppSidebar: React.FC = () => {
         icon: <CalenderIcon />, 
         name: "History Kegiatan", 
         path: "/kegiatan-selesai",
-        hide : userRole !== "admin",
+        hide: userRole !== "admin",
       },
     ];
 
     // Filter items berdasarkan role
     return navItems.filter(item => {
-      // Jika item memiliki subItems, periksa apakah ada subItems yang visible
       if (item.subItems) {
         const visibleSubItems = item.subItems.filter(subItem => !subItem.hide);
         return visibleSubItems.length > 0;
@@ -271,34 +270,37 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+        className={`flex justify-center items-center min-h-[96px] ${
+          !isExpanded && !isHovered ? "lg:justify-center" : "justify-center"
         }`}
       >
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <Image
-                className="dark:hidden"
+                className="dark:hidden object-contain"
                 src="/images/logo/logo-bps.png"
-                alt="Logo"
-                width={500}
+                alt="Logo BPS"
+                width={185}
                 height={200}
+                style={{ maxHeight: "150px" }} // Batasi tinggi agar pas di tengah
               />
               <Image
-                className="hidden dark:block"
+                className="hidden dark:block object-contain"
                 src="/images/logo/logo-dark.png"
-                alt="Logo"
-                width={500}
+                alt="Logo BPS Dark"
+                width={185}
                 height={200}
+                style={{ maxHeight: "150px" }} // Batasi tinggi agar pas di tengah
               />
             </>
           ) : (
             <Image
               src="/images/logo/logo-icon.png"
-              alt="Logo"
+              alt="Logo Icon"
               width={32}
               height={32}
+              className="object-contain"
             />
           )}
         </Link>
@@ -324,7 +326,6 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen}
       </div>
     </aside>
   );
