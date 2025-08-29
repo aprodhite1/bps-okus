@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import MonitoringKinerjaASN from '@/components/event/MonitoringKinerjaASN';
 import ProtectedRoute from '../auth/ProtectedRoute';
-import { Kegiatan } from "@/types/kegiatan";
+import { Kegiatan } from "@/types/typeKegiatan";
 
 
 export default function KegiatanCard() {

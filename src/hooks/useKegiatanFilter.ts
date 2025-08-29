@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Kegiatan } from './useKegiatan';
+import { Kegiatan } from '@/types/typeKegiatan';
 
 export function useKegiatanFilter(kegiatan: Kegiatan[]) {
   const [searchTerm, setSearchTerm] = useState('');
