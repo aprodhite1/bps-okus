@@ -73,7 +73,9 @@ export default function KegiatanSelesaiPage() {
 
   if (loading) {
     return (
+      
       <ProtectedRoute>
+        <>
         <div className="container mx-auto p-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Kegiatan yang Telah Selesai
@@ -84,6 +86,7 @@ export default function KegiatanSelesaiPage() {
             ))}
           </div>
         </div>
+        </>
       </ProtectedRoute>
     );
   }

@@ -6,8 +6,8 @@ import KegiatanCard from "@/components/event/KegiatanCard";
 
 export const metadata: Metadata = {
   title:
-    "SAKIP ",
-  description: "Aplikasi SAKIP BPS Kabupaten Ogan Komering Ulu Selatan untuk mengelola kinerja instansi pemerintah",
+    "SIKALIS",
+  description: "Sistem Kalender Kerja Terintegrasi SAKIP | BPS Kabupaten Ogan Komering Ulu Selatan",
 };
 
 export default function Ecommerce() {
