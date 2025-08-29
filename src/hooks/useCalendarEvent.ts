@@ -98,7 +98,7 @@ export function useCalendarEvents() {
     );
 
     return () => unsubscribe();
-  }, [convertToCalendarEvent]);
+  }, []);
 
   return { events, loading };
 }

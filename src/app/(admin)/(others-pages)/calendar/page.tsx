@@ -1,5 +1,5 @@
 import Calendar from "@/components/calendar/Calendar";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
+
 import { Metadata } from "next";
 import React from "react";
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <ProtectedRoute>
+    
       <div className="space-y-6 bg-white dark:bg-white/[0.03] rounded-2xl border border-gray-200 dark:border-gray-800 p-6 xl:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2">
@@ -23,6 +23,6 @@ export default function Page() {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+    
   );
 }

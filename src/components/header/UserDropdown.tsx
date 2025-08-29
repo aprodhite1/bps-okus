@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 
-import { useRouter } from "next/navigation";
 
 // Interface untuk data user
 interface User {
@@ -17,7 +16,7 @@ interface User {
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
-  const router = useRouter();
+  
 
   // Ambil data user dari localStorage/sessionStorage saat komponen mount
   useEffect(() => {
@@ -49,19 +48,27 @@ export default function UserDropdown() {
   }
 
   // Fungsi untuk logout
-  const handleSignOut = () => {
-    // Hapus data user dari storage
-    sessionStorage.removeItem('user');
-    localStorage.removeItem('user');
-    
-    // Reset state user
-    setUser(null);
-    
-    // Redirect ke halaman login
-    router.push("/signin");
-    router.refresh(); // Refresh halaman untuk update state
-    closeDropdown();
+  const handleSignOut = async () => {
+    try {
+      // Hapus semua data user dari penyimpanan
+      sessionStorage.clear();
+      localStorage.clear();
+
+      // Reset state context
+      setUser(null);
+
+      // Tutup dropdown (jika ada UI yang terbuka)
+      if (typeof closeDropdown === "function") {
+        closeDropdown();
+      }
+
+      // Redirect dengan reload penuh agar state benar-benar direset
+      window.location.href = "/signin";
+    } catch (error) {
+      console.error("Error saat logout:", error);
+    }
   };
+
 
   // Fallback data jika user tidak ditemukan
   

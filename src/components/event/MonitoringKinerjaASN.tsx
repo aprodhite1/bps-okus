@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { useRouter } from 'next/navigation';
+
 
 // Interface untuk data progress
 interface UserProgress {
@@ -56,7 +56,7 @@ export default function MonitoringKinerjaASN() {
   const [error, setError] = useState<string | null>(null);
   const [pegawaiData, setPegawaiData] = useState<PegawaiData[]>([]);
   const [userNames, setUserNames] = useState<Record<string, string>>({});
-  const router = useRouter();
+  
 
   // Fetch kegiatan dari Firestore
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function MonitoringKinerjaASN() {
 
   // Handle row click untuk navigasi
   const handleRowClick = (username: string) => {
-    router.push(`/pegawai/${username}`);
+    window.location.href =`/pegawai/${username}`;
   };
 
   // Loading state

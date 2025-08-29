@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { useRouter } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
@@ -27,18 +27,7 @@ const Calendar: React.FC = () => {
   const isAdmin = userRole === "admin";
 
   // Debug event data and view changes
-  useEffect(() => {
-    console.log("userRole:", userRole);
-    console.log("isAdmin:", isAdmin);
-    console.log("Events:", events.map(event => ({
-      id: event.id,
-      title: event.title,
-      start: event.start,
-      end: event.end,
-      allDay: event.allDay,
-      extendedProps: event.extendedProps,
-    })));
-  }, [userRole, isAdmin, events]);
+  
 
   const handleAddEventClick = () => {
     router.push("/manage-event/tambah");
