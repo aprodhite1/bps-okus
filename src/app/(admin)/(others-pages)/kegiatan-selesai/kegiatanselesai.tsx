@@ -291,9 +291,9 @@ export default function KegiatanSelesai({ initialData = [] }: KegiatanSelesaiPro
                                 - Deskripsi: ${fb.deskripsi}
                                 - Kendala: ${fb.kendala}
                                 - Solusi: ${fb.solusi}
-                                - Saran: ${fb.saran}
+                                - Tindak Lanjut: ${fb.saran}
                                 - Bukti Dukung: ${fb.buktiDukung || 'Tidak ada'}
-                                - Link Bukti Dukung: ${fb.linkBuktiDukung || 'Tidak ada'}
+                                - Link Bukti Dukung Kegiatan: ${fb.linkBuktiDukung || 'Tidak ada'}
                                 - Tanggal: ${fb.feedbackAt.toLocaleDateString('id-ID')}
                               `).join('\n------------------------\n');
                               alert(detail);

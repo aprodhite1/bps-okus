@@ -250,7 +250,7 @@ export default function FeedbackPage() {
           {/* Saran */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Saran dan Masukan
+              Tindak Lanjut
             </label>
             <textarea
               value={saran}
@@ -279,7 +279,7 @@ export default function FeedbackPage() {
           {/* Link Bukti Dukung */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Link Bukti Dukung
+              Link Bukti Dukung Kegiatan
             </label>
             <input
               type="url"
