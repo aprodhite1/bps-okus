@@ -1,10 +1,9 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-
 
 // Interface untuk data progress
 interface UserProgress {
@@ -39,6 +38,12 @@ interface Kegiatan {
   progress: Record<string, UserProgress>;
 }
 
+// Interface untuk data user
+interface UserData {
+  username: string;
+  name: string;
+}
+
 // Interface untuk data agregasi pegawai
 interface PegawaiData {
   namaPegawai: string;
@@ -52,11 +57,16 @@ interface PegawaiData {
 export default function MonitoringKinerjaASN() {
   const { user } = useAuth();
   const [kegiatan, setKegiatan] = useState<Kegiatan[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pegawaiData, setPegawaiData] = useState<PegawaiData[]>([]);
-  const [userNames, setUserNames] = useState<Record<string, string>>({});
-  
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString()); // Default to current year
+  const [selectedMonths, setSelectedMonths] = useState<string[]>([]); // Array of '01' to '12', empty for all
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const [isMonthOpen, setIsMonthOpen] = useState(false);
+  const yearRef = useRef<HTMLDivElement>(null);
+  const monthRef = useRef<HTMLDivElement>(null);
 
   // Fetch kegiatan dari Firestore
   useEffect(() => {
@@ -90,87 +100,232 @@ export default function MonitoringKinerjaASN() {
     fetchKegiatan();
   }, []);
 
-  // Fetch user names dari Firestore
+  // Fetch all users dari Firestore
   useEffect(() => {
-    const fetchUserNames = async () => {
+    const fetchUsers = async () => {
       try {
         const usersRef = collection(db, 'users');
         const usersSnap = await getDocs(usersRef);
-        const names: Record<string, string> = {};
+        const userData: UserData[] = [];
         
         usersSnap.forEach((doc) => {
-          const userData = doc.data();
-          names[userData.username] = userData.name || userData.username;
-        });
-
-        setUserNames(names);
-      } catch (err) {
-        console.error('Error fetching user names:', err);
-        // Fallback: gunakan username sebagai nama
-        const fallbackNames: Record<string, string> = {};
-        kegiatan.forEach(k => {
-          k.petugas_target?.forEach(pt => {
-            fallbackNames[pt.pegawai] = pt.pegawai;
+          const data = doc.data();
+          userData.push({
+            username: data.username,
+            name: data.name || data.username,
           });
         });
-        setUserNames(fallbackNames);
+
+        setUsers(userData);
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        setError('Gagal memuat data pengguna');
       }
     };
 
-    if (kegiatan.length > 0) {
-      fetchUserNames();
+    fetchUsers();
+  }, []);
+
+  // Generate available years (2020 to 2030)
+  const availableYears = useMemo(() => {
+    const years: string[] = [];
+    const startYear = 2020;
+    const endYear = 2030;
+    for (let year = startYear; year <= endYear; year++) {
+      years.push(year.toString());
     }
-  }, [kegiatan]);
+    return years;
+  }, []);
 
-  // Aggregasi data pegawai berdasarkan petugas_target
+  // Fixed months list
+  const monthsList = useMemo(() => [
+    { value: '01', label: 'Januari' },
+    { value: '02', label: 'Februari' },
+    { value: '03', label: 'Maret' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'Mei' },
+    { value: '06', label: 'Juni' },
+    { value: '07', label: 'Juli' },
+    { value: '08', label: 'Agustus' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'Oktober' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'Desember' },
+  ], []);
+
+  // Format selected year
+  const formatSelectedYear = () => {
+    return selectedYear || 'Pilih Tahun';
+  };
+
+  // Format selected months as range or list
+  const formatSelectedMonths = () => {
+    if (selectedMonths.length === 0 || selectedMonths.length === monthsList.length) {
+      return 'Semua Bulan';
+    }
+    if (selectedMonths.length === 1) {
+      const month = monthsList.find(m => m.value === selectedMonths[0]);
+      return month ? month.label : 'Bulan';
+    }
+    const sortedMonths = [...selectedMonths].sort((a, b) => parseInt(a) - parseInt(b));
+    const ranges: string[][] = [];
+    let currentRange: string[] = [sortedMonths[0]];
+    for (let i = 1; i < sortedMonths.length; i++) {
+      const prevMonth = parseInt(sortedMonths[i - 1], 10);
+      const currMonth = parseInt(sortedMonths[i], 10);
+      if (currMonth === prevMonth + 1) {
+        currentRange.push(sortedMonths[i]);
+      } else {
+        ranges.push(currentRange);
+        currentRange = [sortedMonths[i]];
+      }
+    }
+    ranges.push(currentRange);
+
+    const formattedRanges = ranges.map(range => {
+      const firstMonth = monthsList.find(m => m.value === range[0]);
+      const lastMonth = monthsList.find(m => m.value === range[range.length - 1]);
+      if (range.length === 1) {
+        return firstMonth?.label.slice(0, 3) || '';
+      }
+      return `${firstMonth?.label.slice(0, 3)}-${lastMonth?.label.slice(0, 3)}`;
+    });
+
+    return formattedRanges.join(', ');
+  };
+
+  // Aggregasi data pegawai berdasarkan semua users dan filter tahun/bulan
   useEffect(() => {
-    const aggregation: Record<string, PegawaiData> = {};
+    const filteredKegiatan = kegiatan.filter(k => {
+      const startDate = new Date(k.tanggal_mulai);
+      const endDate = new Date(k.tanggal_selesai);
+      const startYear = startDate.getFullYear().toString();
+      const endYear = endDate.getFullYear().toString();
+      const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
+      const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
 
-    kegiatan.forEach((kegiatanItem) => {
-      // Loop melalui petugas_target bukan pegawai array
+      // Year filter (match if either start or end year matches selectedYear)
+      const yearMatch = selectedYear ? (startYear === selectedYear || endYear === selectedYear) : false;
+
+      // Month filter (if months selected, check overlap)
+      let monthMatch = true;
+      if (selectedMonths.length > 0) {
+        monthMatch = selectedMonths.includes(startMonth) || selectedMonths.includes(endMonth);
+      }
+
+      return yearMatch && monthMatch;
+    });
+
+    // Initialize aggregation with all users
+    const aggregation: Record<string, PegawaiData> = {};
+    users.forEach(u => {
+      aggregation[u.username] = {
+        namaPegawai: u.name,
+        username: u.username,
+        jumlahKegiatan: 0,
+        targetTotal: 0,
+        totalTercapai: 0,
+        persentaseSelesai: 0,
+      };
+    });
+
+    // Update aggregation based on filtered kegiatan
+    filteredKegiatan.forEach((kegiatanItem) => {
       kegiatanItem.petugas_target?.forEach((petugas) => {
         const username = petugas.pegawai;
         
-        if (!aggregation[username]) {
-          aggregation[username] = {
-            namaPegawai: userNames[username] || username,
-            username: username,
-            jumlahKegiatan: 0,
-            targetTotal: 0,
-            totalTercapai: 0,
-            persentaseSelesai: 0,
-          };
-        }
+        if (aggregation[username]) {
+          aggregation[username].jumlahKegiatan += 1;
+          aggregation[username].targetTotal += petugas.target;
 
-        aggregation[username].jumlahKegiatan += 1;
-        aggregation[username].targetTotal += petugas.target;
-
-        // Cek progress user
-        const userProgress = kegiatanItem.progress?.[username];
-        if (userProgress) {
-          aggregation[username].totalTercapai += userProgress.tercapai;
-          aggregation[username].persentaseSelesai += userProgress.progress_percentage;
+          // Cek progress user
+          const userProgress = kegiatanItem.progress?.[username];
+          if (userProgress) {
+            aggregation[username].totalTercapai += userProgress.tercapai;
+            aggregation[username].persentaseSelesai += userProgress.progress_percentage;
+          }
         }
       });
     });
 
-    // Hitung persentase selesai rata-rata
-    const finalData = Object.values(aggregation).map((data) => ({
-      ...data,
-      persentaseSelesai: data.jumlahKegiatan > 0 
-        ? Math.round(data.persentaseSelesai / data.jumlahKegiatan)
-        : 0,
-    }));
+    // Hitung persentase selesai rata-rata dan filter hanya pegawai dengan kegiatan
+    const finalData = Object.values(aggregation)
+      .map((data) => ({
+        ...data,
+        persentaseSelesai: data.jumlahKegiatan > 0 
+          ? Math.round(data.persentaseSelesai / data.jumlahKegiatan)
+          : 0,
+      }))
+      .filter(data => data.jumlahKegiatan > 0); // Only include pegawai with kegiatan
 
     // Urutkan berdasarkan nama pegawai
     finalData.sort((a, b) => a.namaPegawai.localeCompare(b.namaPegawai));
 
     setPegawaiData(finalData);
-  }, [kegiatan, userNames]);
+  }, [kegiatan, users, selectedYear, selectedMonths]);
+
+  // Handle year selection (single selection)
+  const handleYearSelect = (year: string) => {
+    setSelectedYear(year); // Set the selected year, replacing any previous selection
+    setSelectedMonths([]); // Reset months when changing year
+    setIsYearOpen(false); // Close dropdown after selection
+  };
+
+  // Toggle year dropdown
+  const toggleYearDropdown = () => {
+    setIsYearOpen(prev => !prev);
+  };
+
+  // Toggle month dropdown
+  const toggleMonthDropdown = () => {
+    setIsMonthOpen(prev => !prev);
+  };
+
+  // Handle month checkbox change with auto-select/deselect for intermediate months
+  const handleMonthCheckboxChange = (month: string) => {
+    setSelectedMonths(prev => {
+      if (prev.includes(month)) {
+        // Deselect: Remove the month and re-evaluate ranges
+        const newMonths = prev.filter(m => m !== month);
+        if (newMonths.length <= 1) return newMonths; // No range needed for 0 or 1 month
+        // Sort remaining months
+        const sortedMonths = [...newMonths].sort((a, b) => parseInt(a) - parseInt(b));
+        return sortedMonths;
+      } else {
+        // Select: Add the month and fill in gaps if needed
+        const newMonths = [...prev, month].sort((a, b) => parseInt(a) - parseInt(b));
+        if (newMonths.length > 1) {
+          const minMonth = parseInt(newMonths[0], 10);
+          const maxMonth = parseInt(newMonths[newMonths.length - 1], 10);
+          // Include all months in the range
+          const filledMonths: string[] = [];
+          for (let i = minMonth; i <= maxMonth; i++) {
+            filledMonths.push(String(i).padStart(2, '0'));
+          }
+          return filledMonths;
+        }
+        return newMonths;
+      }
+    });
+  };
+
+  // Close dropdowns if clicked outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (yearRef.current && !yearRef.current.contains(event.target as Node)) {
+        setIsYearOpen(false);
+      }
+      if (monthRef.current && !monthRef.current.contains(event.target as Node)) {
+        setIsMonthOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Handle row click untuk navigasi
   const handleRowClick = (username: string) => {
-    window.location.href =`/pegawai/${username}`;
+    window.location.href = `/pegawai/${username}`;
   };
 
   // Loading state
@@ -213,124 +368,184 @@ export default function MonitoringKinerjaASN() {
     );
   }
 
-  // Empty state
-  if (pegawaiData.length === 0) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-8 text-center border border-gray-200 dark:border-gray-700">
-        <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-        </svg>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Belum Ada Data Pegawai</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
-          Tidak ada pegawai yang terlibat dalam kegiatan saat ini.
-        </p>
-        {user?.role === 'admin' && (
-          <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200">
-            <p>Tambahkan pegawai ke dalam kegiatan melalui menu `Tambah Kegiatan``.</p>
-          </div>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      {/* Always render header with dropdowns */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Monitoring Kinerja ASN</h2>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          Total: {pegawaiData.length} pegawai
-        </span>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md dark:shadow-gray-900/50">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Nama Pegawai
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Username
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Jumlah Kegiatan
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Target Total
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Progress
-              </th>
-              <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                Persentase Selesai
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {pegawaiData.map((pegawai) => (
-              <tr
-                key={pegawai.username}
-                className="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
-                onClick={() => handleRowClick(pegawai.username)}
-                role="button"
-                aria-label={`Lihat detail untuk ${pegawai.namaPegawai}`}
-              >
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                  {pegawai.namaPegawai}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                  {pegawai.username}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
-                  {pegawai.jumlahKegiatan}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
-                  {pegawai.targetTotal.toLocaleString('id-ID')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
-                  {pegawai.totalTercapai.toLocaleString('id-ID')}/{pegawai.targetTotal.toLocaleString('id-ID')}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 mr-2">
-                      <div
-                        className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(pegawai.persentaseSelesai, 100)}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[40px]">
-                      {pegawai.persentaseSelesai}%
-                    </span>
+        <div className="flex items-center space-x-4">
+          {/* Year Single-Select Dropdown */}
+          <div className="relative" ref={yearRef}>
+            <button
+              onClick={toggleYearDropdown}
+              className="rounded border border-gray-300 bg-gray-100 py-2 px-4 text-gray-900 flex items-center justify-between min-w-[150px] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+            >
+              <span>{formatSelectedYear()}</span>
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {isYearOpen && (
+              <div className="absolute z-10 mt-2 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 max-h-60 overflow-y-auto">
+                {availableYears.map((year) => (
+                  <div
+                    key={year}
+                    className={`py-1 px-2 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded ${
+                      selectedYear === year ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium' : 'text-gray-900 dark:text-gray-200'
+                    }`}
+                    onClick={() => handleYearSelect(year)}
+                  >
+                    {year}
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-      {/* Summary */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">📊 Ringkasan Kinerja</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-blue-700 dark:text-blue-300">
-          <div>
-            <span className="font-semibold">Total Pegawai:</span> {pegawaiData.length}
+          {/* Month Multi-Select Dropdown */}
+          <div className="relative" ref={monthRef}>
+            <button
+              onClick={toggleMonthDropdown}
+              className="rounded border border-gray-300 bg-gray-100 py-2 px-4 text-gray-900 flex items-center justify-between min-w-[200px] dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+            >
+              <span>{formatSelectedMonths()}</span>
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {isMonthOpen && (
+              <div className="absolute z-10 mt-2 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 max-h-60 overflow-y-auto">
+                {monthsList.map((month) => (
+                  <label key={month.value} className="flex items-center space-x-2 py-1 text-sm text-gray-900 dark:text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={selectedMonths.includes(month.value)}
+                      onChange={() => handleMonthCheckboxChange(month.value)}
+                      className="form-checkbox h-4 w-4 text-blue-600"
+                    />
+                    <span>{month.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
-          <div>
-            <span className="font-semibold">Total Kegiatan:</span> {kegiatan.length}
-          </div>
-          <div>
-            <span className="font-semibold">Rata-rata Progress:</span>{" "}
-            {pegawaiData.length > 0
-              ? Math.round(pegawaiData.reduce((sum, p) => sum + p.persentaseSelesai, 0) / pegawaiData.length)
-              : 0}%
-          </div>
-          <div>
-            <span className="font-semibold">Pegawai Aktif:</span>{" "}
-            {pegawaiData.filter(p => p.jumlahKegiatan > 0).length}
-          </div>
+
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Total: {pegawaiData.length} pegawai
+          </span>
         </div>
       </div>
+
+      {/* Empty state for no users or no kegiatan */}
+      {(users.length === 0 || pegawaiData.length === 0) && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-8 text-center border border-gray-200 dark:border-gray-700">
+          <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            {users.length === 0 ? 'Belum Ada Data Pegawai' : 'Tidak Ada Kegiatan'}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
+            {users.length === 0 
+              ? 'Tidak ada data pengguna yang tersedia.' 
+              : `Tidak ada kegiatan untuk ${formatSelectedYear()} ${formatSelectedMonths()}.`}
+          </p>
+          {user?.role === 'admin' && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+              <p>Tambahkan pegawai melalui pengelolaan pengguna atau tambahkan kegiatan melalui menu `Tambah Kegiatan`.</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Table and summary (only if there are pegawai with kegiatan) */}
+      {pegawaiData.length > 0 && (
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md dark:shadow-gray-900/50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Nama Pegawai
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Jumlah Kegiatan
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Target Total
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Progress
+                  </th>
+                  <th className="px-6 py-3 border-b border-gray-200 dark:border-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Persentase Selesai
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {pegawaiData.map((pegawai) => (
+                  <tr
+                    key={pegawai.username}
+                    className="hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150"
+                    onClick={() => handleRowClick(pegawai.username)}
+                    role="button"
+                    aria-label={`Lihat detail untuk ${pegawai.namaPegawai}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {pegawai.namaPegawai}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                      {pegawai.jumlahKegiatan}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                      {pegawai.targetTotal.toLocaleString('id-ID')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-center">
+                      {pegawai.totalTercapai.toLocaleString('id-ID')}/{pegawai.targetTotal.toLocaleString('id-ID')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2.5 mr-2">
+                          <div
+                            className="bg-blue-600 dark:bg-blue-500 h-2.5 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(pegawai.persentaseSelesai, 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[40px]">
+                          {pegawai.persentaseSelesai}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Summary */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">📊 Ringkasan Kinerja</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-blue-700 dark:text-blue-300">
+              <div>
+                <span className="font-semibold">Total Pegawai:</span> {pegawaiData.length}
+              </div>
+              <div>
+                <span className="font-semibold">Total Kegiatan:</span> {kegiatan.length}
+              </div>
+              <div>
+                <span className="font-semibold">Rata-rata Progress:</span>{" "}
+                {pegawaiData.length > 0
+                  ? Math.round(pegawaiData.reduce((sum, p) => sum + p.persentaseSelesai, 0) / pegawaiData.length)
+                  : 0}%
+              </div>
+              <div>
+                <span className="font-semibold">Pegawai Aktif:</span>{" "}
+                {pegawaiData.filter(p => p.jumlahKegiatan > 0).length}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

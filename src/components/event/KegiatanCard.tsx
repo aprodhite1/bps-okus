@@ -15,7 +15,7 @@ export default function KegiatanCard() {
   const { user } = useAuth();
   const [useFallback, setUseFallback] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const [viewMode, setViewMode] = useState<'aktif' | 'selesai' | 'monitoring'>('aktif');
+  const [viewMode, setViewMode] = useState<'aktif' | 'selesai' | 'monitoring'>('monitoring');
   const router = useRouter();
 
   useEffect(() => {
