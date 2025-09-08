@@ -11,11 +11,12 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 // Define event color classes for light and dark modes
 const eventColorClasses: { [key: string]: string } = {
-  "fc-bg-primary": "bg-blue-500 dark:bg-blue-400",
-  "fc-bg-success": "bg-green-500 dark:bg-green-400",
-  "fc-bg-warning": "bg-yellow-500 dark:bg-yellow-300",
-  "fc-bg-danger": "bg-red-500 dark:bg-red-400",
-  "fc-bg-info": "bg-cyan-500 dark:bg-cyan-300",
+  "fc-bg-primary": "bg-blue-600 dark:bg-blue-500",
+  "fc-bg-success": "bg-emerald-600 dark:bg-emerald-500",
+  "fc-bg-warning": "bg-amber-500 dark:bg-amber-400",
+  "fc-bg-danger": "bg-rose-600 dark:bg-rose-500",
+  "fc-bg-info": "bg-teal-500 dark:bg-teal-400",
+  "fc-bg-default": "bg-gray-500 dark:bg-gray-400", // Fallback for undefined types
 };
 
 const Calendar: React.FC = () => {
@@ -26,16 +27,13 @@ const Calendar: React.FC = () => {
 
   const isAdmin = userRole === "admin";
 
-  // Debug event data and view changes
-  
-
   const handleAddEventClick = () => {
     router.push("/manage-event/tambah");
   };
 
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event;
-    router.push(`/kegiatan/${event.extendedProps.kegiatan_id}`);
+    router.push(`/kegiatan/${event.extendedProps.kegiatan_id}?from=calendar`);
   };
 
   const handleDateClick = (clickInfo: any) => {
@@ -54,23 +52,15 @@ const Calendar: React.FC = () => {
 
   const renderEventContent = (eventInfo: any) => {
     const event = eventInfo.event;
-    const calendarType = event.extendedProps.calendar?.toLowerCase() || "primary";
-    const colorClass = eventColorClasses[`fc-bg-${calendarType}`] || eventColorClasses["fc-bg-primary"];
+    const calendarType = event.extendedProps.calendar?.toLowerCase() || "default";
+    const colorClass = eventColorClasses[`fc-bg-${calendarType}`] || eventColorClasses["fc-bg-default"];
 
     return (
-      <div className={`event-fc-color flex fc-event-main ${colorClass} p-1 rounded-sm text-white`}>
-        <div className="fc-daygrid-event-dot border-white dark:border-gray-300 flex-shrink-0"></div>
-        <div className="flex-1 overflow-hidden">
-          {eventInfo.timeText && (
-            <div className="fc-event-time text-xs">{eventInfo.timeText}</div>
-          )}
-          <div className="fc-event-title text-xs font-medium truncate">{eventInfo.event.title}</div>
-          {event.extendedProps.target_petugas > 0 && (
-            <div className="fc-event-target text-xs truncate">
-              ({event.extendedProps.target_petugas} {event.extendedProps.satuan_target})
-            </div>
-          )}
-        </div>
+      <div
+        className={`event-fc-color flex fc-event-main ${colorClass} p-0.5 rounded-sm text-white text-xs font-medium truncate hover:opacity-90 transition-opacity duration-150`}
+        title={eventInfo.event.title} // Add tooltip for full title
+      >
+        {eventInfo.event.title}
       </div>
     );
   };
@@ -163,17 +153,23 @@ const Calendar: React.FC = () => {
         }
         .custom-calendar .fc .fc-event {
           border: none;
-          border-radius: 0.25rem;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border-radius: 0.125rem; /* Smaller border radius */
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+          line-height: 1.2; /* Tighter line height for compact display */
         }
         .dark .custom-calendar .fc .fc-event {
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         .custom-calendar .fc .fc-timegrid-event .fc-event-main {
-          padding: 2px 4px;
+          padding: 0.5rem; /* Reduced padding */
         }
-        .custom-calendar .fc .fc-timegrid-event .fc-event-time {
-          margin-right: 4px;
+        .custom-calendar .fc .fc-daygrid-event {
+          margin: 1px 2px; /* Reduced margin for tighter spacing */
+          font-size: 0.75rem; /* Smaller font size for day grid */
+        }
+        .custom-calendar .fc .fc-timegrid-event {
+          min-height: 1.5rem; /* Smaller minimum height for time grid */
+          font-size: 0.75rem; /* Smaller font size for time grid */
         }
       `}</style>
       <div className="custom-calendar">
