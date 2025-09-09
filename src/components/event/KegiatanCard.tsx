@@ -146,16 +146,24 @@ export default function KegiatanCard() {
     }
   };
 
-  // Fungsi untuk menghapus kegiatan
-  const handleHapusKegiatan = async (kegiatanId: string) => {
-    try {
-      const kegiatanRef = doc(db, 'kegiatan', kegiatanId);
-      await deleteDoc(kegiatanRef);
-      console.log(`Kegiatan ${kegiatanId} berhasil dihapus`);
-      // Data akan otomatis diperbarui via onSnapshot di useKegiatan
-    } catch (err) {
-      console.error('Gagal menghapus kegiatan:', err);
-      // Opsional: Tambahkan feedback ke user, misalnya toast notification
+  // Fungsi untuk menghapus kegiatan dengan konfirmasi
+  const handleHapusKegiatan = async (kegiatanId: string, namaKegiatan: string) => {
+    const confirmMessage = `Apakah Anda yakin ingin menghapus kegiatan "${namaKegiatan || 'tanpa nama'}" ini?`;
+    const isConfirmed = window.confirm(confirmMessage);
+    console.log(`Hapus kegiatan ${kegiatanId} (nama: ${namaKegiatan}):`, { isConfirmed });
+
+    if (isConfirmed) {
+      try {
+        const kegiatanRef = doc(db, 'kegiatan', kegiatanId);
+        await deleteDoc(kegiatanRef);
+        console.log(`Kegiatan ${kegiatanId} berhasil dihapus`);
+        // Data akan otomatis diperbarui via onSnapshot di useKegiatan
+      } catch (err) {
+        console.error('Gagal menghapus kegiatan:', err);
+        // Opsional: Tambahkan feedback ke user, misalnya toast notification
+      }
+    } else {
+      console.log(`Penghapusan kegiatan ${kegiatanId} dibatalkan`);
     }
   };
 
@@ -174,6 +182,17 @@ export default function KegiatanCard() {
             const isAdminCreator = user?.username === item.created_by;
             const showTandaiSelesai = progressKegiatan === 100 && isAdminCreator && item.status !== 'selesai';
             const showHapusKegiatan = isAdminCreator && item.status === 'draft';
+
+            // Debugging button visibility
+            console.log(`Kegiatan ${item.id}:`, {
+              status: item.status,
+              isAdminCreator,
+              progressKegiatan,
+              showTandaiSelesai,
+              showHapusKegiatan,
+              user: user?.username,
+              created_by: item.created_by,
+            });
 
             return (
               <div
@@ -249,8 +268,8 @@ export default function KegiatanCard() {
                     )}
                     {showHapusKegiatan && (
                       <button
-                        onClick={() => handleHapusKegiatan(item.id)}
-                        className="w-full px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
+                        onClick={() => handleHapusKegiatan(item.id, item.nama_kegiatan)}
+                        className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                       >
                         Hapus Kegiatan
                       </button>
