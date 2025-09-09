@@ -7,7 +7,7 @@ import MonitoringKinerjaASN from '@/components/event/MonitoringKinerjaASN';
 import ProtectedRoute from '../auth/ProtectedRoute';
 import { Kegiatan } from "@/types/typeKegiatan";
 import { useAuth } from '@/context/AuthContext';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 export default function KegiatanCard() {
@@ -146,6 +146,19 @@ export default function KegiatanCard() {
     }
   };
 
+  // Fungsi untuk menghapus kegiatan
+  const handleHapusKegiatan = async (kegiatanId: string) => {
+    try {
+      const kegiatanRef = doc(db, 'kegiatan', kegiatanId);
+      await deleteDoc(kegiatanRef);
+      console.log(`Kegiatan ${kegiatanId} berhasil dihapus`);
+      // Data akan otomatis diperbarui via onSnapshot di useKegiatan
+    } catch (err) {
+      console.error('Gagal menghapus kegiatan:', err);
+      // Opsional: Tambahkan feedback ke user, misalnya toast notification
+    }
+  };
+
   return (
     <ProtectedRoute>
       <div className="space-y-6">
@@ -160,6 +173,7 @@ export default function KegiatanCard() {
               : 0;
             const isAdminCreator = user?.username === item.created_by;
             const showTandaiSelesai = progressKegiatan === 100 && isAdminCreator && item.status !== 'selesai';
+            const showHapusKegiatan = isAdminCreator && item.status === 'draft';
 
             return (
               <div
@@ -222,15 +236,25 @@ export default function KegiatanCard() {
                   </div>
                 </div>
 
-                {/* Tombol Tandai Selesai */}
-                {showTandaiSelesai && (
-                  <div className="p-4 border-t dark:border-gray-600">
-                    <button
-                      onClick={() => handleTandaiSelesai(item.id)}
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
-                    >
-                      Tandai Selesai
-                    </button>
+                {/* Tombol Aksi */}
+                {(showTandaiSelesai || showHapusKegiatan) && (
+                  <div className="p-4 border-t dark:border-gray-600 flex flex-col space-y-2">
+                    {showTandaiSelesai && (
+                      <button
+                        onClick={() => handleTandaiSelesai(item.id)}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
+                      >
+                        Tandai Selesai
+                      </button>
+                    )}
+                    {showHapusKegiatan && (
+                      <button
+                        onClick={() => handleHapusKegiatan(item.id)}
+                        className="w-full px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
+                      >
+                        Hapus Kegiatan
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

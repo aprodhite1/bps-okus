@@ -33,7 +33,7 @@ const Calendar: React.FC = () => {
 
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event;
-    router.push(`/kegiatan/${event.extendedProps.kegiatan_id}?from=calendar`);
+    router.push(`/kegiatan/${event.extendedProps.kegiatan_id}`);
   };
 
   const handleDateClick = (clickInfo: any) => {
