@@ -96,7 +96,7 @@ export default function ProgressCard({ kegiatan, onUpdateProgress, onCancelEdit 
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
             disabled={loading}
           >
-            Edit Progress
+            Update Progress
           </button>
         )}
       </div>
@@ -226,7 +226,7 @@ export default function ProgressCard({ kegiatan, onUpdateProgress, onCancelEdit 
                 </svg>
               </div>
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Belum ada progress yang dicatat. Klik `Edit Progress` untuk mulai melaporkan.
+                Belum ada progress. Klik `Update Progress` untuk mulai melaporkan.
               </p>
             </div>
           )}

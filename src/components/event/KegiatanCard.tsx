@@ -41,7 +41,7 @@ export default function KegiatanCard() {
         onClick={() => setViewMode('monitoring')}
         className={`px-4 py-2 rounded-md ${
           viewMode === 'monitoring'
-            ? 'bg-purple-600 text-white'
+            ? 'bg-blue-500 text-white'
             : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
         }`}
       >
@@ -51,7 +51,7 @@ export default function KegiatanCard() {
         onClick={() => setViewMode('aktif')}
         className={`px-4 py-2 rounded-md ${
           viewMode === 'aktif'
-            ? 'bg-blue-600 text-white'
+            ? 'bg-yellow-600 text-white'
             : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
         }`}
       >

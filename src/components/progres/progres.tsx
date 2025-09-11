@@ -1,4 +1,3 @@
-// app/progress/page.tsx
 "use client";
 import { useState, useEffect } from 'react';
 import { collection, query, updateDoc, doc, onSnapshot } from 'firebase/firestore';
@@ -174,12 +173,23 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        
+        <div className="flex justify-center items-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-       
+        </div>
       </ProtectedRoute>
     );
   }
+
+  // Hitung metrik untuk Ringkasan Progres Kegiatan
+  const currentDate = new Date('2025-09-11T08:59:00+07:00'); // Sesuai waktu saat ini
+  const activeKegiatan = kegiatanList.filter(k => k.status.toLowerCase() !== 'selesai');
+  const progressToday = kegiatanList
+    .filter(k => k.progress?.last_updated && new Date(k.progress.last_updated).toDateString() === currentDate.toDateString())
+    .reduce((sum, k) => sum + (k.progress?.tercapai || 0), 0);
+  const targetRemaining = kegiatanList.reduce((sum, k) => sum + ((k.progress?.target || k.target_petugas) - (k.progress?.tercapai || 0)), 0);
+  const averageProgress = kegiatanList.length > 0
+    ? Math.round(kegiatanList.reduce((sum, k) => sum + (k.progress?.progress_percentage || 0), 0) / kegiatanList.length)
+    : 0;
 
   return (
     <ProtectedRoute>
@@ -187,27 +197,60 @@ export default function ProgressPage() {
         <PageBreadcrumb pageTitle="Progress Kegiatan" />
         
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
-              Progress Kegiatan Saya
-            </h1>
-            {kegiatanList.length > 0 && (
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {kegiatanList.length} Kegiatan
-              </span>
-            )}
-          </div>
-
-          {/* Debug Information */}
-          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
-              🔍 Debug Information
+          {/* Ringkasan Progres Kegiatan */}
+          <div className="mb-6 bg-gradient-to-r from-blue-500 to-blue-500 dark:from-blue-800 dark:to-blue-800 rounded-xl shadow-lg dark:shadow-gray-900/50 p-6">
+            <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+              <svg className="w-6 h-6 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 012-2h2a2 2 0 012 2v12a2 2 0 01-2 2h-2a2 2 0 01-2-2" />
+              </svg>
+              Ringkasan Progres Kegiatan Saya
             </h3>
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-              <p>👤 User: {user?.username}</p>
-              <p>🏢 Role: {user?.role}</p>
-              <p>📊 Total Kegiatan di DB: {allKegiatanCount}</p>
-              <p>✅ Kegiatan Ditugaskan: {kegiatanList.length}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow duration-200 transform hover:-translate-y-1">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-8 h-8 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Kegiatan Aktif</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{activeKegiatan.length}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow duration-200 transform hover:-translate-y-1">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-8 h-8 text-orange-500 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Progress</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{progressToday.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow duration-200 transform hover:-translate-y-1">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-8 h-8 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Target Tersisa</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{targetRemaining.toLocaleString('id-ID')}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-xl transition-shadow duration-200 transform hover:-translate-y-1">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-8 h-8 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Rata-rata Progress</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{averageProgress}%</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -230,7 +273,7 @@ export default function ProgressPage() {
                   <p className="text-yellow-800 dark:text-yellow-400">
                     ⚠️ Ditemukan {allKegiatanCount} kegiatan, tapi tidak ada yang ditugaskan ke user ini.
                   </p>
-                  <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                  <p className="text-yellow-800 dark:text-yellow-400 mt-1">
                     Pastikan username `{user.username}` ada di field petugas_target.
                   </p>
                 </div>
