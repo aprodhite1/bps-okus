@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect,  } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   collection, 
   query, 
@@ -17,6 +17,7 @@ interface CalendarEvent extends EventInput {
     proyek: string;
     target_petugas: number;
     satuan_target: string;
+    status: string; // Added status field
   };
 }
 
@@ -47,7 +48,8 @@ export function useCalendarEvents() {
         kegiatan_id: id,
         proyek: data.proyek || '',
         target_petugas: data.target_petugas || 0,
-        satuan_target: data.satuan_target || ''
+        satuan_target: data.satuan_target || '',
+        status: data.status || 'draft' // Added status field
       }
     };
   };
@@ -87,6 +89,14 @@ export function useCalendarEvents() {
             console.error('Error converting event:', error, data);
           }
         });
+
+        console.log('📅 Calendar events loaded:', calendarEvents.length);
+        console.log('📋 Sample events:', calendarEvents.slice(0, 3).map(e => ({
+          id: e.id,
+          title: e.title,
+          status: e.extendedProps.status,
+          calendar: e.extendedProps.calendar
+        })));
 
         setEvents(calendarEvents);
         setLoading(false);

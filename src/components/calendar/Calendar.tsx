@@ -75,6 +75,12 @@ const Calendar: React.FC = () => {
     );
   }
 
+  // Filter events to show only those with status not equal to "selesai"
+  const filteredEvents = events.filter((event: any) => {
+    const status = event.extendedProps.status?.toLowerCase();
+    return status !== "selesai";
+  });
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-800 p-4 xl:p-6">
       <style jsx global>{`
@@ -182,7 +188,7 @@ const Calendar: React.FC = () => {
             center: "title",
             right: "dayGridMonth,timeGridWeek,timeGridDay",
           }}
-          events={events.map((event: any) => {
+          events={filteredEvents.map((event: any) => {
             const startStr = event.start instanceof Date ? event.start.toISOString() : event.start;
             const endStr = event.end instanceof Date ? event.end.toISOString() : event.end;
             return {
