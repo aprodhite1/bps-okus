@@ -30,7 +30,7 @@ export default function AuthLayout({
                   />
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  Aplikasi SAKIP BPS Kabupaten Ogan Komering Ulu Selatan untuk mengelola kinerja instansi pemerintah.
+                  Aplikasi Sistem Kalender Kerja Terintegrasi SAKIP untuk mengelola kinerja pegawai BPS OKU Selatan.
                 </p>
               </div>
             </div>
