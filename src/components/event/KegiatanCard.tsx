@@ -423,7 +423,7 @@ export default function KegiatanCard() {
               : 0;
             const isAdminCreator = user?.username === item.created_by;
             const showTandaiSelesai = progressKegiatan === 100 && isAdminCreator && item.status !== 'selesai';
-            const showHapusKegiatan = isAdminCreator && item.status === 'draft';
+            const showHapusKegiatan = isAdminCreator || (user?.role === 'super_admin' && item.status === 'draft');
 
             // Debugging button visibility
             console.log(`Kegiatan ${item.id}:`, {
@@ -434,6 +434,7 @@ export default function KegiatanCard() {
               showHapusKegiatan,
               user: user?.username,
               created_by: item.created_by,
+              role: user?.role,
             });
 
             return (
